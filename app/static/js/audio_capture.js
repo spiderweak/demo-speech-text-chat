@@ -13,41 +13,50 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Record button clicked");
         listeningIndicator.classList.remove('hidden');
 
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                console.log("Microphone access granted");
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // The API is available
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    console.log("Microphone access granted");
 
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.start();
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
 
-                console.log("Recording started");
+                    console.log("Recording started");
 
-                mediaRecorder.addEventListener('dataavailable', event => {
-                    console.log("Data available from recording");
-                    audioChunks.push(event.data);
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        console.log("Data available from recording");
+                        audioChunks.push(event.data);
+                    });
+
+                    stopButton.disabled = false;
+                    recordButton.disabled = true;
+
+                    mediaRecorder.addEventListener('stop', () => {
+                        console.log("Recording stopped");
+                        listeningIndicator.classList.add('hidden');
+                        loadingIndicator.classList.remove('hidden');
+
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        console.log("Audio Blob created", audioBlob);
+                        audioChunks = [];
+
+                        sendAudioToServer(audioBlob);
+
+                        stopButton.disabled = true;
+                        recordButton.disabled = false;
+                        exportButton.disabled = false;
+                        exportButton.classList.remove('hidden');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error accessing the microphone:', error);
+                    loadingIndicator.classList.add('hidden');
                 });
-
-                stopButton.disabled = false;
-                recordButton.disabled = true;
-
-                mediaRecorder.addEventListener('stop', () => {
-                    console.log("Recording stopped");
-                    listeningIndicator.classList.add('hidden');
-                    loadingIndicator.classList.remove('hidden');
-
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    console.log("Audio Blob created", audioBlob);
-                    audioChunks = [];
-
-                    sendAudioToServer(audioBlob);
-
-                    stopButton.disabled = true;
-                    recordButton.disabled = false;
-                    exportButton.disabled = false;
-                });
-            })
-            .catch(error => console.error('Error accessing media devices:', error));
-            loadingIndicator.classList.add('hidden');
+        } else {
+            console.error('MediaDevices API not available');
+            document.getElementById('mediaDevicesError').classList.remove('hidden');
+        }
     });
 
     stopButton.addEventListener('click', () => {

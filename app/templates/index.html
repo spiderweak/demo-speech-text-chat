@@ -61,7 +61,12 @@
 
         <!-- Transcription result will be displayed here -->
         <div id="transcriptionResult" class="mt-4 text-lg text-green-600"></div>
-        <button id="exportBtn" disabled class="bg-green-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">Export Text</button>
+        <div id="mediaDevicesError" class="hidden text-red-600 text-center mt-4">
+            The MediaDevices API is not available in your browser.
+        </div>
+        <button id="exportBtn" disabled class="bg-green-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full hidden">
+            Export Text
+        </button>
     </div>
 
     <script src="{{ url_for('static', filename='js/audio_capture.js') }}"></script>
