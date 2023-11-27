@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             // The API is available
-            listeningIndicator.classList.remove('hidden');
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     console.log("Microphone access granted");
+                    listeningIndicator.classList.remove('hidden');
 
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.start();
