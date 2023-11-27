@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     recordButton.addEventListener('click', () => {
         console.log("Record button clicked");
-        listeningIndicator.classList.remove('hidden');
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             // The API is available
+            listeningIndicator.classList.remove('hidden');
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     console.log("Microphone access granted");
