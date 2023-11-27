@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const recordButton = document.getElementById('recordButton');
     const stopButton = document.getElementById('stopButton');
+    const exportButton = document.getElementById("exportBtn");
 
     const loadingIndicator = document.getElementById('loading-indicator');
     const listeningIndicator = document.getElementById('microphone-indicator')
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     stopButton.disabled = true;
                     recordButton.disabled = false;
+                    exportButton.disabled = false;
                 });
             })
             .catch(error => console.error('Error accessing media devices:', error));
