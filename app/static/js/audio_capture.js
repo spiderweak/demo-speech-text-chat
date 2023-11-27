@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function sendAudioToServer(audioBlob) {
     console.log("Sending audio to server");
+    const loadingIndicator = document.getElementById('loading-indicator');
 
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.wav');
