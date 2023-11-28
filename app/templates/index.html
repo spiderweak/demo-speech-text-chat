@@ -6,13 +6,22 @@
     <title>Audio Capture for Whisper</title>
 
     <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!--<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- JQuery Library -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         window.jQuery || document.write('<script src="/static/js/jquery-3.7.1.min.js"><\/script>');
     </script>
+
+    <!-- Socket.IO Library -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!--
+    <script>
+        // Loaded Socket IO || document.write('<script src="/static/js/socket.io-4.7.2.min.js"><\/script>');
+    </script>
+-->
 </head>
 
 
@@ -26,10 +35,7 @@
             Start Recording
         </button>
 
-        <!-- File Upload Form Column -->
-        <button id="stopButton" disabled class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
-            Stop and Send
-        </button>
+        <div id="status">Status: Idle</div>
 
     <!-- Loading indicator -->
     <div id="loading-indicator" class="hidden my-5 flex justify-center items-center">
@@ -70,6 +76,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/audio_capture.js') }}"></script>
+
     <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 
 </body>
