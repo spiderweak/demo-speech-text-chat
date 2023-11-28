@@ -35,35 +35,33 @@
             Start Recording
         </button>
 
-        <div id="status">Status: Idle</div>
+        <div id="status" class="mt-2 p-2 bg-orange-100 text-orange-800 rounded">Status: Idle</div>
 
-    <!-- Loading indicator -->
-    <div id="loading-indicator" class="hidden my-5 flex justify-center items-center">
-        <span class="loader"></span>
-        <style>
-            .loader {
-                width: 48px;
-                height: 48px;
-                border: 5px solid #000;
-                border-bottom-color: #FF3D00;
-                border-radius: 50%;
-                display: inline-block;
-                box-sizing: border-box;
-                animation: rotation 1s linear infinite;
-            }
-
-            @keyframes rotation {
-                0% {
-                    transform: rotate(0deg);
+        <!-- Loading indicator -->
+        <div id="loading-indicator" class="hidden my-5 flex justify-center items-center">
+            <span class="loader"></span>
+            <style>
+                .loader {
+                    width: 48px;
+                    height: 48px;
+                    border: 5px solid #000;
+                    border-bottom-color: #FF3D00;
+                    border-radius: 50%;
+                    display: inline-block;
+                    box-sizing: border-box;
+                    animation: rotation 1s linear infinite;
                 }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-        </style>
-    </div>
 
-    <div id="microphone-indicator" class="hidden my-5 text-4xl">🎙️</div>
+                @keyframes rotation {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+                    100% {
+                        transform: rotate(360deg);
+                    }
+                }
+            </style>
+        </div>
 
         <!-- Transcription result will be displayed here -->
         <div id="transcriptionResult" class="mt-4 text-lg text-green-600"></div>
@@ -73,6 +71,7 @@
         <button id="exportBtn" disabled class="bg-green-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full hidden">
             Export Text
         </button>
+
     </div>
 
     <script src="{{ url_for('static', filename='js/audio_capture.js') }}"></script>

@@ -3,8 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportButton = document.getElementById("exportBtn");
 
     const loadingIndicator = document.getElementById('loading-indicator');
-    const listeningIndicator = document.getElementById('microphone-indicator')
-
 
     const statusDiv = document.getElementById('status');
     let mediaRecorder;
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
             console.log("Microphone access granted");
-            listeningIndicator.classList.remove('hidden');
 
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.start(2000);
@@ -48,8 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
             isRecording = true;
             recordButton.textContent = 'Stop Recording';
             statusDiv.textContent = 'Status: Recording';
-            recordButton.classList.remove('bg-blue-500 hover:bg-blue-700')
-            recordButton.classList.add('bg-red-500 hover:bg-red-700')
+
+            recordButton.classList.remove('bg-blue-500');
+            recordButton.classList.remove('hover:bg-blue-700');
+            recordButton.classList.add('bg-red-500');
+            recordButton.classList.add('hover:bg-red-700');
+
+            statusDiv.classList.remove('bg-orange-100');
+            statusDiv.classList.remove('text-orange-800');
+            statusDiv.classList.add('bg-green-100');
+            statusDiv.classList.add('text-green-800');
+
+            loadingIndicator.classList.remove('hidden');
         })
         .catch(error => {
             console.error('Error accessing the microphone:', error);
@@ -66,8 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
         recordButton.textContent = 'Start Recording';
         statusDiv.textContent = 'Status: Idle';
 
-        listeningIndicator.classList.add('hidden');
-        loadingIndicator.classList.remove('hidden');
+        recordButton.classList.remove('bg-red-500');
+        recordButton.classList.remove('hover:bg-red-700');
+        recordButton.classList.add('bg-blue-500');
+        recordButton.classList.add('hover:bg-blue-700');
+
+        statusDiv.classList.remove('bg-green-100');
+        statusDiv.classList.remove('text-green-800');
+        statusDiv.classList.add('bg-orange-100');
+        statusDiv.classList.add('text-orange-800');
 
         exportButton.disabled = false;
         exportButton.classList.remove('hidden');
@@ -82,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('transcriptionResult').textContent = 'Transcription: ' + data.text;
     });
 
+});
 /*
 function sendAudioToServer(audioBlob) {
     console.log("Sending audio to server");
@@ -105,5 +120,4 @@ function sendAudioToServer(audioBlob) {
         loadingIndicator.classList.add('hidden');
     });
 }
-
 */
