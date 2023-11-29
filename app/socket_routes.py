@@ -8,7 +8,6 @@ import tempfile
 import os
 
 model = whisper.load_model("base")
-
 # Buffer for accumulating audio data
 
 @socketio.on('audio_chunk')
@@ -19,11 +18,14 @@ def handle_audio_chunk(audio_chunk):
 
     print(f"Audio chunk saved to {temp_file_path}, size: {os.path.getsize(temp_file_path)} bytes")
 
-    # Process the saved audio file
-    result = model.transcribe(temp_file_path)
-    transcription = result["text"]
+    try:
+        # Process the saved audio file
+        result = model.transcribe(temp_file_path, condition_on_previous_text=True)
+        transcription = result["text"]
 
-    # Emit the transcription result
-    socketio.emit('transcription', {'text': transcription})
+        # Emit the transcription result
+        socketio.emit('transcription', {'text': transcription})
+    except RuntimeError as re:
+        print(re)
 
     os.remove(temp_file_path)
