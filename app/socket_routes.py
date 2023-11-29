@@ -4,41 +4,26 @@ import io
 import uuid
 import wave
 import logging
-
+import tempfile
+import os
 
 model = whisper.load_model("base")
 
 # Buffer for accumulating audio data
-audio_buffer = bytearray()
 
 @socketio.on('audio_chunk')
 def handle_audio_chunk(audio_chunk):
-    global audio_buffer
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm', dir='minutes') as temp_file:
+        temp_file.write(audio_chunk)
+        temp_file_path = temp_file.name
 
-    # Append chunk to the buffer
-    audio_buffer.extend(audio_chunk)
-
-    # Check if the buffer has enough data to process (5 seconds of audio)
-    if len(audio_buffer) >= 882000:
-        process_audio_buffer()
-
-
-
-def process_audio_buffer():
-    global audio_buffer
-
-    temp_filename = f"temp_{uuid.uuid4()}.wav"
-
-    with wave.open(temp_filename, 'wb') as temp_file:
-        temp_file.setparams((2, 2, 44100, 0, 'NONE', 'NONE'))
-        temp_file.writeframes(audio_buffer)
-
-    audio_buffer.clear()
+    print(f"Audio chunk saved to {temp_file_path}, size: {os.path.getsize(temp_file_path)} bytes")
 
     # Process the saved audio file
-    result = model.transcribe(temp_filename)
+    result = model.transcribe(temp_file_path)
     transcription = result["text"]
 
     # Emit the transcription result
     socketio.emit('transcription', {'text': transcription})
-    print(transcription)
+
+    os.remove(temp_file_path)

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statusDiv = document.getElementById('status');
     let mediaRecorder;
+    let audioChunks = [];
     let isRecording = false;
     const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
 
@@ -30,17 +31,27 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(stream => {
             console.log("Microphone access granted");
 
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start(2000);
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
 
             console.log("Recording started");
 
-            mediaRecorder.addEventListener('dataavailable', event => {
-                console.log("Data available from recording");
-                if (event.data.size > 0) {
-                    socket.emit('audio_chunk', event.data);
+
+            mediaRecorder.ondataavailable = event => {
+                console.log(`Chunk received: size = ${event.data.size}, type = ${event.data.type}`);
+                audioChunks.push(event.data);
+            };
+            mediaRecorder.start();
+
+            chunkInterval = setInterval(() => {
+                if (audioChunks.length > 0) {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    socket.emit('audio_chunk', audioBlob);
+                    console.log(`Emitting audio blob: size = ${audioBlob.size}, type = ${audioBlob.type}`);
                 }
-            });
+                audioChunks = [];
+                mediaRecorder.stop();
+                mediaRecorder.start();
+            }, 3000);
 
             isRecording = true;
             recordButton.textContent = 'Stop Recording';
@@ -66,22 +77,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function stopRecording() {
 
-        mediaRecorder.stop();
+        clearInterval(chunkInterval);
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+        }
         console.log("Recording stopped");
 
         isRecording = false
         recordButton.textContent = 'Start Recording';
         statusDiv.textContent = 'Status: Idle';
 
-        recordButton.classList.remove('bg-red-500');
-        recordButton.classList.remove('hover:bg-red-700');
-        recordButton.classList.add('bg-blue-500');
-        recordButton.classList.add('hover:bg-blue-700');
+        recordButton.classList.replace('bg-red-500', 'bg-blue-500');
+        recordButton.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
 
-        statusDiv.classList.remove('bg-green-100');
-        statusDiv.classList.remove('text-green-800');
-        statusDiv.classList.add('bg-orange-100');
-        statusDiv.classList.add('text-orange-800');
+        statusDiv.classList.replace('bg-green-100', 'bg-orange-100')
+        statusDiv.classList.replace('text-green-800', 'text-orange-800');
+
+        loadingIndicator.classList.add('hidden');
 
         exportButton.disabled = false;
         exportButton.classList.remove('hidden');
@@ -93,31 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('transcription', data => {
         // Update the transcription result on the page
-        document.getElementById('transcriptionResult').textContent = 'Transcription: ' + data.text;
+        document.getElementById('transcriptionResult').textContent = document.getElementById('transcriptionResult').textContent + data.text;
     });
 
 });
-/*
-function sendAudioToServer(audioBlob) {
-    console.log("Sending audio to server");
-    const loadingIndicator = document.getElementById('loading-indicator');
-
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
-
-    fetch('/upload-audio', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Server response:", data);
-        document.getElementById('transcriptionResult').textContent = data.transcription || 'No transcription available';
-        loadingIndicator.classList.add('hidden');
-    })
-    .catch(error => {
-        console.error("Error sending audio to server:", error);
-        loadingIndicator.classList.add('hidden');
-    });
-}
-*/
