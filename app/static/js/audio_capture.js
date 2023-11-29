@@ -57,15 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
             recordButton.textContent = 'Stop Recording';
             statusDiv.textContent = 'Status: Recording';
 
-            recordButton.classList.remove('bg-blue-500');
-            recordButton.classList.remove('hover:bg-blue-700');
-            recordButton.classList.add('bg-red-500');
-            recordButton.classList.add('hover:bg-red-700');
+            recordButton.classList.replace('bg-blue-500','bg-red-500');
+            recordButton.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
 
-            statusDiv.classList.remove('bg-orange-100');
-            statusDiv.classList.remove('text-orange-800');
-            statusDiv.classList.add('bg-green-100');
-            statusDiv.classList.add('text-green-800');
+            statusDiv.classList.replace('bg-orange-100', 'bg-green-100');
+            statusDiv.classList.replace('text-orange-800', 'text-green-800');
 
             loadingIndicator.classList.remove('hidden');
         })
