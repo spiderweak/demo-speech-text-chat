@@ -13,7 +13,7 @@ model = whisper.load_model("base")
 
 @socketio.on('audio_chunk')
 def handle_audio_chunk(audio_chunk):
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm', dir='minutes') as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm', dir='.') as temp_file:
         temp_file.write(audio_chunk)
         temp_file_path = temp_file.name
 
