@@ -1,31 +1,36 @@
+from collections import deque
 from . import socketio
-import whisper
-import io
-import uuid
-import wave
 import logging
 import tempfile
 import os
 
-model = whisper.load_model("base")
+import base64
+from datetime import datetime
+
+from .audio_processing import AudioTranscriptionManager
+
 # Buffer for accumulating audio data
+transcription_manager = AudioTranscriptionManager()
 
 @socketio.on('audio_chunk')
-def handle_audio_chunk(audio_chunk):
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm', dir='.') as temp_file:
-        temp_file.write(audio_chunk)
-        temp_file_path = temp_file.name
+def handle_audio_chunk(received_data):
 
-    print(f"Audio chunk saved to {temp_file_path}, size: {os.path.getsize(temp_file_path)} bytes")
+    # Decode audio blob
+    audio_data = received_data
+
+    # Convert send date to a valid filename
+    filename_date = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{filename_date}.webm"  # Replace with the appropriate extension
+
+    # Write to file
+    with open(filename, 'wb') as file:
+        file.write(audio_data)
+
+    print(f"Audio blob saved as {filename}")
 
     try:
-        # Process the saved audio file
-        result = model.transcribe(temp_file_path, condition_on_previous_text=True)
-        transcription = result["text"]
-
-        # Emit the transcription result
+        transcription_manager.append_audio(filename)
+        transcription = transcription_manager.get_current_transcription()
         socketio.emit('transcription', {'text': transcription})
     except RuntimeError as re:
-        print(re)
-
-    os.remove(temp_file_path)
+        raise

@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(stream => {
             console.log("Microphone access granted");
 
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            mediaRecorder = new MediaRecorder(stream);
 
             console.log("Recording started");
 
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('transcription', data => {
         // Update the transcription result on the page
-        document.getElementById('transcriptionResult').textContent = document.getElementById('transcriptionResult').textContent + data.text;
+        document.getElementById('transcriptionResult').textContent = data.text;
     });
 
 });
