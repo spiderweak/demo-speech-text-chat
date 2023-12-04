@@ -20,7 +20,7 @@ def handle_audio_chunk(received_data):
 
     # Convert send date to a valid filename
     filename_date = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"output/{filename_date}.webm"  # Replace with the appropriate extension
+    filename = f"{filename_date}.webm"  # Replace with the appropriate extension
 
     # Write to file
     with open(filename, 'wb') as file:

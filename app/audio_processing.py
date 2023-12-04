@@ -29,9 +29,9 @@ class AudioTranscriptionManager:
 
         # Initialize an empty audio segment
 
-        list_file = 'output/filelist.txt'
+        list_file = 'filelist.txt'
         filename_date= datetime.now().strftime("%Y%m%d_%H%M%S")
-        current_audio_file = f"output/combined-{filename_date}.webm"
+        current_audio_file = f"combined-{filename_date}.webm"
 
         # Create a list file for FFmpeg
         with open(list_file, 'w') as f:
@@ -53,13 +53,16 @@ class AudioTranscriptionManager:
         purge_audio(current_audio_file)
 
     def set_current_transcription(self, current_audio_file):
-        result = self.model.transcribe(current_audio_file, word_timestamps=True)
-        self.transcription = result['text']
+        try:
+            result = self.model.transcribe(current_audio_file, word_timestamps=True)
+            self.transcription = result['text']
+        except:
+            pass
 
 
     def get_current_transcription(self):
         return self.transcription
 
 
-def purge_audio(blob_file):
-    os.remove(blob_file)
+def purge_audio(file):
+    os.remove(file)
