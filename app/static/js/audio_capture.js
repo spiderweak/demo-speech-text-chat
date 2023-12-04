@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(stream => {
             console.log("Microphone access granted");
 
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/mp3' });
+            mediaRecorder = new MediaRecorder(stream);
 
             console.log("Recording started");
 
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chunkInterval = setInterval(() => {
                 if (audioChunks.length > 0) {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     socket.emit('audio_chunk', audioBlob);
                     console.log(`Emitting audio blob: size = ${audioBlob.size}, type = ${audioBlob.type}`);
                 }
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('transcription', data => {
         // Update the transcription result on the page
-        document.getElementById('transcriptionResult').textContent = document.getElementById('transcriptionResult').textContent + data.text;
+        document.getElementById('transcriptionResult').textContent = data.text;
     });
 
 });
