@@ -93,6 +93,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         exportButton.disabled = false;
         exportButton.classList.remove('hidden');
+
+        document.getElementById('recordingInterface').style.display = 'none';
+        document.getElementById('chattingInterface').style.display = 'block';
+        socket.emit('start_processing', true)
+
+
+        // Example: After transcription is done
+        var transcriptionResult = document.getElementById('transcriptionResult').textContent;
+        if (transcriptionResult) {
+            displayUserMessage(transcriptionResult);
+        }
     };
 
     socket.on('connect', function() {
@@ -104,4 +115,64 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('transcriptionResult').textContent = data.text;
     });
 
+    function displayUserMessage(messageText) {
+        var chatMessages = document.getElementById('chatMessages');
+        var newMessageDiv = document.createElement('div');
+
+        newMessageDiv.textContent = messageText;
+        newMessageDiv.classList.add('p-2', 'my-2', 'bg-cyan-500', 'rounded', 'rounded-br-none', 'text-white', 'self-end', 'ml-auto');
+
+        chatMessages.appendChild(newMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+        var message = document.getElementById('chatInput').value.trim();
+        if (message) {
+            // Append the message to chatMessages div
+            var chatMessages = document.getElementById('chatMessages');
+            var newMessageDiv = document.createElement('div');
+            newMessageDiv.textContent = message;
+            newMessageDiv.classList.add('p-2', 'my-2', 'bg-blue-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-bl-lg', 'rounded-br-none', 'text-right', 'mr-auto');
+            chatMessages.appendChild(newMessageDiv);
+
+            // Reset the input field
+            document.getElementById('chatInput').value = '';
+
+            // Scroll to the bottom of the chat
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            socket.emit('user_message', message);
+        }
+    }
+
+    function receiveMessage(messageText) {
+        var chatMessages = document.getElementById('chatMessages');
+        var newMessageDiv = document.createElement('div');
+
+        newMessageDiv.textContent = messageText;
+        // Tailwind CSS classes for backend messages
+        newMessageDiv.classList.add('p-2', 'my-2', 'bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'self-start', 'mr-auto');
+
+        chatMessages.appendChild(newMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    socket.on('bot_message', data => {
+        // Update the transcription result on the page
+        receiveMessage(data)
+    });
+
+    // Send button click event
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+
+    // Enter key press event in the input field
+    document.getElementById('chatInput').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent the default action to stop from submitting the form
+            sendMessage();
+        }
+    });
+
 });
+

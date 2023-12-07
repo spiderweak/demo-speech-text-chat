@@ -4,7 +4,7 @@ import logging
 import tempfile
 import os
 
-import base64
+import time
 from datetime import datetime
 
 from .audio_processing import AudioTranscriptionManager
@@ -34,3 +34,13 @@ def handle_audio_chunk(received_data):
         socketio.emit('transcription', {'text': transcription})
     except RuntimeError as re:
         raise
+
+@socketio.on('start_processing')
+def switch_to_llm(received_data):
+
+    time.sleep(3)
+
+@socketio.on('chatbot_response')
+def handle_my_custom_event(data):
+    # Your logic here
+    socketio.emit('backend_message', 'This is a message from the backend')
