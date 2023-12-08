@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isRecording) {
                 startRecording();
             } else {
-                stopRecording();
+                setTimeout(stopRecording, 5000);
+                /*
+                    5 seconds might be a bit slow, for the user
+                    Would be better to wait for complete transcription
+                */
             }
         } else {
             console.error('MediaDevices API not available');
@@ -96,14 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('recordingInterface').style.display = 'none';
         document.getElementById('chattingInterface').style.display = 'block';
-        socket.emit('start_processing', true)
-
 
         // Example: After transcription is done
         var transcriptionResult = document.getElementById('transcriptionResult').textContent;
         if (transcriptionResult) {
             displayUserMessage(transcriptionResult);
         }
+        socket.emit('start_processing', true);
+
     };
 
     socket.on('connect', function() {
@@ -120,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         var newMessageDiv = document.createElement('div');
 
         newMessageDiv.textContent = messageText;
-        newMessageDiv.classList.add('p-2', 'my-2', 'bg-cyan-500', 'rounded', 'rounded-br-none', 'text-white', 'self-end', 'ml-auto');
+        newMessageDiv.classList.add('p-2', 'my-2', 'bg-blue-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-bl-lg', 'rounded-br-none', 'text-right', 'mr-auto');
 
         chatMessages.appendChild(newMessageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -157,6 +161,17 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(newMessageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
+
+    socket.on('correction', function(correctedInput) {
+        /*
+            This function handles correcting the first message based on LLM answer.
+            Not working for now but the frontend interface is there is needed
+        */
+
+        if (correctedInput && correctedInput.text) {
+            displayUserMessage(correctedInput.text);
+        }
+    });
 
     socket.on('bot_message', data => {
         // Update the transcription result on the page
