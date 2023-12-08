@@ -11,12 +11,13 @@ WORKDIR /app
 
 COPY requirements.txt ./
 
-RUN mkdir ./app/
+RUN mkdir -p ./app/templates
+RUN mkdir -p ./app/static
+RUN mkdir -p ./app/models
 
 COPY app/*.py ./app/
-COPY app/templates ./app
-COPY app/static ./app
-RUN mkdir ./app/models
+COPY app/templates ./app/templates
+COPY app/static ./app/static
 
 COPY .env ./
 COPY run.py ./
