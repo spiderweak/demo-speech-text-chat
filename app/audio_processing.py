@@ -5,11 +5,13 @@ import os
 import subprocess
 from datetime import datetime
 
+audio_model = whisper.load_model("base")
+
 class AudioTranscriptionManager:
     def __init__(self):
         self.transcription = ""
         self.audio_blobs = deque()
-        self.model = whisper.load_model("base")
+        self.model = audio_model
 
     def append_audio(self, blob_file):
         # Add blob to the queue
@@ -55,14 +57,19 @@ class AudioTranscriptionManager:
     def set_current_transcription(self, current_audio_file):
         try:
             result = self.model.transcribe(current_audio_file, word_timestamps=True)
-            self.transcription = result['text']
+            self.transcription = str(result['text'])
         except:
             pass
 
 
-    def get_current_transcription(self):
+    def get_current_transcription(self) -> str:
         return self.transcription
 
+    def renew(self):
+        self.transcription = ""
+        while self.audio_blobs:
+            blob = self.audio_blobs.popleft()
+            purge_audio(blob)
 
 def purge_audio(file):
     os.remove(file)

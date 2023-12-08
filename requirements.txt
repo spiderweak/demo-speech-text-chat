@@ -1,3 +1,5 @@
 openai-whisper
 Flask
 flask-socketio
+python-dotenv
+llama-cpp-python

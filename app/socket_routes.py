@@ -8,9 +8,11 @@ import time
 from datetime import datetime
 
 from .audio_processing import AudioTranscriptionManager
+from .text_processing import refactor_input, Conversation
 
 # Buffer for accumulating audio data
 transcription_manager = AudioTranscriptionManager()
+conversation = Conversation()
 
 @socketio.on('audio_chunk')
 def handle_audio_chunk(received_data):
@@ -35,12 +37,30 @@ def handle_audio_chunk(received_data):
     except RuntimeError as re:
         raise
 
+
 @socketio.on('start_processing')
 def switch_to_llm(received_data):
+    """
+        TODO:
+         - Implement control on other socket
+         - Fix Prompt engineering
+         - Proper review of response, the functionality is not well writtend for now
+         - Async would be way better
+    """
 
-    time.sleep(3)
+    time.sleep(3) # This should be temporary, TODO : Implement control on other socket
 
-@socketio.on('chatbot_response')
-def handle_my_custom_event(data):
-    # Your logic here
-    socketio.emit('backend_message', 'This is a message from the backend')
+    #corrected_input = refactor_input(transcription_manager.get_current_transcription()) # TODO : Fix prompt engineering
+    corrected_input = transcription_manager.get_current_transcription()
+
+    socketio.emit('correction', corrected_input)
+    conversation.init_message(corrected_input)
+
+    answer = conversation.respond()
+    socketio.emit('bot_message', answer)
+
+
+@socketio.on('user_message')
+def handle_message(received_data):
+    answer = conversation.reception(received_data)
+    socketio.emit('bot_message', answer)
