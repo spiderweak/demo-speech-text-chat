@@ -8,13 +8,13 @@ This project is a Flask web application that captures audio from the user's micr
 - Send the audio data to a Flask server.
 - Use Whisper to transcribe the audio to text.
 - Display the transcription result on the web page.
+- Working chatbot
+- Real Time Transcription
 
 # Todo
 
-- Implement actual chatbot
 - Various feedback loops to improve the quality of the transcript as well as the questions/answers
 - More logging, especially to add conversation to contexts in case further processing is needed
-- Real Time Transcription
 
 ## Getting Started
 
@@ -85,6 +85,10 @@ docker build -t demo-speech-text-chat .
 ```bash
 docker run -p 5000:5000 demo-speech-text-chat
 ```
+
+## Interfaces diagram
+
+![interfaces diagram](https://github.com/spiderweak/demo-speech-text-chat/blob/main/diagram.png "Chatbot integration diagram")
 
 ## Contributing
 
