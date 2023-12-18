@@ -8,10 +8,11 @@ from datetime import datetime
 audio_model = whisper.load_model("base")
 
 class AudioTranscriptionManager:
-    def __init__(self):
+    def __init__(self, session_id = ""):
         self.transcription = ""
         self.audio_blobs = deque()
         self.model = audio_model
+        self._session_id = session_id
 
     def append_audio(self, blob_file):
         # Add blob to the queue
@@ -31,9 +32,9 @@ class AudioTranscriptionManager:
 
         # Initialize an empty audio segment
 
-        list_file = 'filelist.txt'
+        list_file = self._session_id + '-filelist.txt'
         filename_date= datetime.now().strftime("%Y%m%d_%H%M%S")
-        current_audio_file = f"combined-{filename_date}.webm"
+        current_audio_file = f"combined-{self._session_id}-{filename_date}.webm"
 
         # Create a list file for FFmpeg
         with open(list_file, 'w') as f:
@@ -70,6 +71,8 @@ class AudioTranscriptionManager:
         while self.audio_blobs:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
+        list_file = self._session_id + '-filelist.txt'
+        purge_audio(list_file)
 
 def purge_audio(file):
     os.remove(file)
