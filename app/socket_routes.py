@@ -90,7 +90,9 @@ def switch_to_llm(received_data):
 @socketio.on('user_message')
 def handle_message(received_data):
     session_id = request.sid # type:ignore
-    transcription_manager,conversation_manager = session_managers.get(session_id) # type:ignore
+    transcription_manager, conversation_manager = session_managers.get(session_id) # type:ignore
+    transcription_manager.renew()
 
     answer = conversation_manager.reception(received_data)
     socketio.emit('bot_message', answer, to=session_id)
+
