@@ -12,12 +12,15 @@ from .text_processing import Conversation
 
 from typing import Dict, Tuple
 
-session_managers: Dict[str, tuple[AudioTranscriptionManager, Conversation]] = {}
+import tempfile
+
+session_managers: Dict[str, Tuple[AudioTranscriptionManager, Conversation]] = {}
 
 @socketio.on('connect')
 def handle_connect():
     session_id = request.sid  # type:ignore
-    session_managers[session_id] = (AudioTranscriptionManager(session_id), Conversation())
+    temp_folder = tempfile.TemporaryDirectory()
+    session_managers[session_id] = (AudioTranscriptionManager(temp_folder, session_id=session_id), Conversation())
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -30,7 +33,7 @@ def handle_disconnect():
 @socketio.on('audio_chunk')
 def handle_audio_chunk(received_data):
     session_id = request.sid # type:ignore
-    transcription_manager,_ = session_managers.get(session_id) # type:ignore
+    transcription_manager, conversation_manager = session_managers.get(session_id) # type:ignore
 
     if type(transcription_manager) is not AudioTranscriptionManager:
         logging.error("Session manager not found for session ID: {}".format(session_id))
@@ -39,9 +42,11 @@ def handle_audio_chunk(received_data):
     # Decode audio blob
     audio_data = received_data
 
+    temp_folder = transcription_manager.temp_folder_name
+
     # Convert send date to a valid filename
     filename_date = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{session_id}-{filename_date}.webm"  # Replace with the appropriate extension
+    filename = f"{temp_folder}/{filename_date}.webm"  # Replace with the appropriate extension
 
     # Write to file
     with open(filename, 'wb') as file:

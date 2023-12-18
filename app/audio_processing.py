@@ -4,14 +4,17 @@ import whisper
 import os
 import subprocess
 from datetime import datetime
+import tempfile
 
 audio_model = whisper.load_model("base")
 
 class AudioTranscriptionManager:
-    def __init__(self, session_id = ""):
+    def __init__(self, temp_folder: tempfile.TemporaryDirectory, session_id = ""):
         self.transcription = ""
         self.audio_blobs = deque()
         self.model = audio_model
+        self._temp_folder = temp_folder
+        self.temp_folder_name = temp_folder.name
         self._session_id = session_id
 
     def append_audio(self, blob_file):
@@ -32,14 +35,17 @@ class AudioTranscriptionManager:
 
         # Initialize an empty audio segment
 
-        list_file = self._session_id + '-filelist.txt'
         filename_date= datetime.now().strftime("%Y%m%d_%H%M%S")
-        current_audio_file = f"combined-{self._session_id}-{filename_date}.webm"
+
+        list_file = os.path.join(self.temp_folder_name, "filelist.txt")
 
         # Create a list file for FFmpeg
         with open(list_file, 'w') as f:
             for file_path in self.audio_blobs:
                 f.write(f"file '{file_path}'\n")
+
+
+        current_audio_file = os.path.join(self.temp_folder_name, f"combined-{filename_date}.webm")
 
         # Create the FFmpeg command
         ffmpeg_cmd = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", current_audio_file]
@@ -71,7 +77,9 @@ class AudioTranscriptionManager:
         while self.audio_blobs:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
-        list_file = self._session_id + '-filelist.txt'
+
+        list_file = os.path.join(self.temp_folder_name, "filelist.txt")
+
         purge_audio(list_file)
 
 def purge_audio(file):
