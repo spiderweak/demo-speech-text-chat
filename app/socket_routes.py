@@ -1,14 +1,13 @@
 from collections import deque
 from . import socketio
+
 import logging
-import tempfile
-import os
 
 import time
 from datetime import datetime
 
 from .audio_processing import AudioTranscriptionManager
-from .text_processing import refactor_input, Conversation
+from .text_processing import Conversation
 
 # Buffer for accumulating audio data
 transcription_manager = AudioTranscriptionManager()
@@ -28,7 +27,7 @@ def handle_audio_chunk(received_data):
     with open(filename, 'wb') as file:
         file.write(audio_data)
 
-    print(f"Audio blob saved as {filename}")
+    logging.info(f"Audio blob saved as {filename}")
 
     try:
         transcription_manager.append_audio(filename)
