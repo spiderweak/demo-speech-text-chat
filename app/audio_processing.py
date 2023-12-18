@@ -41,11 +41,11 @@ class AudioTranscriptionManager:
                 f.write(f"file '{file_path}'\n")
 
         # Create the FFmpeg command
-        ffmpeg_cmd = f"ffmpeg -f concat -safe 0 -i {list_file} -c copy {current_audio_file}"
+        ffmpeg_cmd = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", current_audio_file]
 
         try:
         # Execute the command
-            subprocess.run(ffmpeg_cmd, check=True, shell=True)
+            subprocess.run(ffmpeg_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         except subprocess.CalledProcessError as e:
             print(f"An error occurred: {e}")
             raise e
