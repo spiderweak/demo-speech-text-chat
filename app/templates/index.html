@@ -22,75 +22,34 @@
         // Loaded Socket IO || document.write('<script src="/static/js/socket.io-4.7.2.min.js"><\/script>');
     </script>
 -->
-    <!-- Record RTC -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.1/RecordRTC.min.js"></script>
-
 </head>
 
-
 <body class="bg-gray-100 h-screen flex flex-col items-center justify-center">
-    <div id="recordingInterface">
-        <div class="text-center">
-            <h1 class="text-4xl font-bold mb-4">Record Audio and Send to Whisper</h1>
-
-            <!-- Question Form Column -->
-            <button id="recordButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mr-2">
-                Start Recording
-            </button>
-
-            <div id="status" class="mt-2 p-2 bg-orange-100 text-orange-800 rounded">Status: Idle</div>
-
-            <!-- Loading indicator -->
-            <div id="loading-indicator" class="hidden my-5 flex justify-center items-center">
-                <span class="loader"></span>
-                <style>
-                    .loader {
-                        width: 48px;
-                        height: 48px;
-                        border: 5px solid #000;
-                        border-bottom-color: #FF3D00;
-                        border-radius: 50%;
-                        display: inline-block;
-                        box-sizing: border-box;
-                        animation: rotation 1s linear infinite;
-                    }
-
-                    @keyframes rotation {
-                        0% {
-                            transform: rotate(0deg);
-                        }
-                        100% {
-                            transform: rotate(360deg);
-                        }
-                    }
-                </style>
-            </div>
-
-            <!-- Transcription result will be displayed here -->
-            <div id="transcriptionResult" class="mt-4 text-lg text-green-600"></div>
-            <div id="mediaDevicesError" class="hidden text-red-600 text-center mt-4">
-                The MediaDevices API is not available in your browser.
-            </div>
-            <button id="exportBtn" disabled class="bg-green-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full hidden">
-                Export Text
-            </button>
-
-        </div>
-    </div>
-
-    <div id="chattingInterface" class="hidden fixed bottom-0 right-0 mb-4 mr-4 md:w-1/3">
+    <div id="chattingInterface" class="fixed bottom-0 right-0 mb-4 mr-4 md:w-1/3">
         <div id="chatMessages" class="h-96 overflow-y-auto bg-white p-4 shadow rounded-lg">
             <!-- Chat messages will be appended here -->
         </div>
-        <div class="mt-4 flex">
-            <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 border border-gray-300 p-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="sendButton" class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600">Send</button>
+        <div id="inputInterface" class="mt-4 flex">
+            <button id="recordButton" aria-label="Start Audio recording" class="bg-blue-500 text-white px-4 py-2 rounded-l-lg hover:bg-blue-700">🎙️</button>
+            <textarea type="text" id="chatInput" placeholder="Type a message..." aria-label="Type your message here" class="flex-1 border border-gray-300 p-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <button id="sendButton" aria-label="Send message" class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600">Send</button>
         </div>
     </div>
 
+    <style>
+        #chatInput {
+            min-height: 50px; /* Minimum height */
+            max-height: 300px; /* Maximum height */
+            overflow-y: auto; /* Add a scrollbar if content exceeds max height */
+            resize: none;
+        }
+    </style>
+
     <script src="{{ url_for('static', filename='js/audio_capture.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+    <!--
+        <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+    -->
 
 </body>
 

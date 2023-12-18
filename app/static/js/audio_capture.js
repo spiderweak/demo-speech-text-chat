@@ -1,14 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     const recordButton = document.getElementById('recordButton');
-    const exportButton = document.getElementById("exportBtn");
-
-    const loadingIndicator = document.getElementById('loading-indicator');
-
-    const statusDiv = document.getElementById('status');
+    const sendButton = document.getElementById('sendButton')
     let mediaRecorder;
     let audioChunks = [];
     let isRecording = false;
     const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
+
+    const chatInput = document.getElementById('chatInput');
+
+    // Send button click event
+    sendButton.addEventListener('click', sendMessage);
+
+    // Enter key press event in the input field
+    chatInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent the default action to stop from submitting the form
+            sendMessage();
+        }
+    });
+
+    chatInput.addEventListener('input', function() {
+        adjustTextareaHeight(this);
+    });
 
     recordButton.addEventListener('click', () => {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -16,16 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isRecording) {
                 startRecording();
             } else {
-                setTimeout(stopRecording, 5000);
-                /*
-                    5 seconds might be a bit slow, for the user
-                    Would be better to wait for complete transcription
-                */
+                stopRecording()
             }
         } else {
             console.error('MediaDevices API not available');
-            document.getElementById('mediaDevicesError').classList.remove('hidden');
-
+            displayErrorMessage('The MediaDevices API is not available in your browser.');
         }
     });
 
@@ -58,20 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 3000);
 
             isRecording = true;
-            recordButton.textContent = 'Stop Recording';
-            statusDiv.textContent = 'Status: Recording';
+            recordButton.textContent = 'Stop';
 
             recordButton.classList.replace('bg-blue-500','bg-red-500');
             recordButton.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
 
-            statusDiv.classList.replace('bg-orange-100', 'bg-green-100');
-            statusDiv.classList.replace('text-orange-800', 'text-green-800');
-
-            loadingIndicator.classList.remove('hidden');
         })
         .catch(error => {
             console.error('Error accessing the microphone:', error);
-            loadingIndicator.classList.add('hidden');
+            displayErrorMessage('Error accessing the microphone');
         });
     };
 
@@ -81,34 +84,82 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mediaRecorder) {
             mediaRecorder.stop();
         }
+
+        // Process and send any remaining audio chunks
+        if (audioChunks.length > 0) {
+            const finalAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            socket.emit('audio_chunk', finalAudioBlob);
+            console.log(`Final audio blob emitted: size = ${finalAudioBlob.size}, type = ${finalAudioBlob.type}`);
+        }
+        // Clear the audioChunks array
+        audioChunks = [];
+
         console.log("Recording stopped");
 
         isRecording = false
-        recordButton.textContent = 'Start Recording';
-        statusDiv.textContent = 'Status: Idle';
+        recordButton.textContent = '🎙️';
 
         recordButton.classList.replace('bg-red-500', 'bg-blue-500');
         recordButton.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
 
-        statusDiv.classList.replace('bg-green-100', 'bg-orange-100')
-        statusDiv.classList.replace('text-green-800', 'text-orange-800');
-
-        loadingIndicator.classList.add('hidden');
-
-        exportButton.disabled = false;
-        exportButton.classList.remove('hidden');
-
-        document.getElementById('recordingInterface').style.display = 'none';
-        document.getElementById('chattingInterface').style.display = 'block';
-
-        // Example: After transcription is done
-        var transcriptionResult = document.getElementById('transcriptionResult').textContent;
-        if (transcriptionResult) {
-            displayUserMessage(transcriptionResult);
+        // Stop the media recorder
+        if (mediaRecorder) {
+            mediaRecorder.stop();
         }
-        socket.emit('start_processing', true);
-
     };
+
+    function displayMessage(messageText, messageType) {
+        var chatMessages = document.getElementById('chatMessages');
+        var newMessageDiv = document.createElement('div');
+
+        newMessageDiv.textContent = messageText;
+
+        var baseClasses = ['p-2', 'my-2', 'rounded-lg', 'mr-auto'];
+        var typeClasses = {
+            'user': ['bg-blue-200', 'rounded-bl-lg', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-none', 'text-right'],
+            'error': ['bg-red-200', 'rounded-lg', 'text-red-600'],
+            'bot': ['bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'rounded-br-lg', 'text-black']
+        };
+
+        newMessageDiv.classList.add(...baseClasses, ...typeClasses[messageType]);
+
+
+        chatMessages.appendChild(newMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    }
+
+    function displayUserMessage(messageText) {
+        displayMessage(messageText, 'user')
+    }
+
+    function displayErrorMessage(messageText) {
+        displayMessage(messageText, 'error')
+    }
+
+    function displayBotMessage(messageText) {
+        displayMessage(messageText, 'bot')
+    }
+
+    function sendMessage() {
+        var message = chatInput.value.trim();
+        if (message) {
+            // Append the message to chatMessages div
+            displayUserMessage(message)
+
+            // Reset the input field
+            chatInput.value = '';
+
+            // Scroll to the bottom of the chat
+
+            socket.emit('user_message', message);
+        }
+    }
+
+    function adjustTextareaHeight(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
 
     socket.on('connect', function() {
         console.log('WebSocket connected');
@@ -116,77 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('transcription', data => {
         // Update the transcription result on the page
-        document.getElementById('transcriptionResult').textContent = data.text;
-    });
-
-    function displayUserMessage(messageText) {
-        var chatMessages = document.getElementById('chatMessages');
-        var newMessageDiv = document.createElement('div');
-
-        newMessageDiv.textContent = messageText;
-        newMessageDiv.classList.add('p-2', 'my-2', 'bg-blue-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-bl-lg', 'rounded-br-none', 'text-right', 'mr-auto');
-
-        chatMessages.appendChild(newMessageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function sendMessage() {
-        var message = document.getElementById('chatInput').value.trim();
-        if (message) {
-            // Append the message to chatMessages div
-            var chatMessages = document.getElementById('chatMessages');
-            var newMessageDiv = document.createElement('div');
-            newMessageDiv.textContent = message;
-            newMessageDiv.classList.add('p-2', 'my-2', 'bg-blue-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-bl-lg', 'rounded-br-none', 'text-right', 'mr-auto');
-            chatMessages.appendChild(newMessageDiv);
-
-            // Reset the input field
-            document.getElementById('chatInput').value = '';
-
-            // Scroll to the bottom of the chat
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            socket.emit('user_message', message);
-        }
-    }
-
-    function receiveMessage(messageText) {
-        var chatMessages = document.getElementById('chatMessages');
-        var newMessageDiv = document.createElement('div');
-
-        newMessageDiv.textContent = messageText;
-        // Tailwind CSS classes for backend messages
-        newMessageDiv.classList.add('p-2', 'my-2', 'bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'self-start', 'mr-auto');
-
-        chatMessages.appendChild(newMessageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    socket.on('correction', function(correctedInput) {
-        /*
-            This function handles correcting the first message based on LLM answer.
-            Not working for now but the frontend interface is there is needed
-        */
-
-        if (correctedInput && correctedInput.text) {
-            displayUserMessage(correctedInput.text);
-        }
+        chatInput.value = data.text;
+        adjustTextareaHeight(chatInput)
+        console.log(data.text)
     });
 
     socket.on('bot_message', data => {
         // Update the transcription result on the page
-        receiveMessage(data)
-    });
-
-    // Send button click event
-    document.getElementById('sendButton').addEventListener('click', sendMessage);
-
-    // Enter key press event in the input field
-    document.getElementById('chatInput').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent the default action to stop from submitting the form
-            sendMessage();
-        }
+        displayBotMessage(data)
     });
 
 });
