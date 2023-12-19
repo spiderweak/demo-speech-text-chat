@@ -2,6 +2,10 @@ from app import create_app, socketio
 import os
 from dotenv import load_dotenv
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 load_dotenv()
 
 app = create_app()

@@ -52,11 +52,16 @@ def handle_audio_chunk(received_data):
     with open(filename, 'wb') as file:
         file.write(audio_data)
 
-    logging.info(f"Audio blob saved as {filename}")
+    logging.debug(f"Audio blob saved as {filename}")
 
     try:
-        transcription_manager.append_audio(filename)
+        thread = transcription_manager.append_audio(filename)
+        logging.debug(f"Thread {thread} started, waiting for answer")
+        while thread.is_alive():
+            time.sleep(0.2)
+        logging.debug(f"Thread {thread} done, diplaying transcription answer")
         transcription = transcription_manager.get_current_transcription()
+        logging.debug(f"{transcription}")
         socketio.emit('transcription', {'text': transcription}, to=session_id)
     except RuntimeError as re:
         raise

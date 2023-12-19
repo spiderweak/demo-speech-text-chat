@@ -6,6 +6,9 @@ import subprocess
 from datetime import datetime
 import tempfile
 
+import logging
+import threading
+
 audio_model = whisper.load_model("base")
 
 class AudioTranscriptionManager:
@@ -23,7 +26,9 @@ class AudioTranscriptionManager:
         if len(self.audio_blobs) > 10:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
-        self.merge_audio_blobs()
+        thread = self.merge_audio_blobs()
+
+        return thread
 
     def merge_audio_blobs(self):
         """
@@ -54,23 +59,34 @@ class AudioTranscriptionManager:
         # Execute the command
             subprocess.run(ffmpeg_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
             raise e
 
-        self.set_current_transcription(current_audio_file)
+        logging.debug("Merging Done, starting thread")
+        thread = threading.Thread(target=self.transcribe_audio, args=(current_audio_file,))
+        thread.start()
+        logging.debug(f"thread {thread} started")
 
-        purge_audio(current_audio_file)
+        return thread
 
-    def set_current_transcription(self, current_audio_file):
+    def transcribe_audio(self, current_audio_file):
         try:
             result = self.model.transcribe(current_audio_file, word_timestamps=True)
-            self.transcription = str(result['text'])
+            purge_audio(current_audio_file)
+            self.set_current_transcription(str(result['text']))
+            logging.debug("Transcription done")
+        except:
+            raise
+
+    def set_current_transcription(self, transcription):
+        try:
+            self.transcription = transcription
         except:
             pass
 
-
     def get_current_transcription(self) -> str:
         return self.transcription
+
 
     def renew(self):
         self.transcription = ""
@@ -78,9 +94,11 @@ class AudioTranscriptionManager:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
 
-        list_file = os.path.join(self.temp_folder_name, "filelist.txt")
-
-        purge_audio(list_file)
+        try:
+            list_file = os.path.join(self.temp_folder_name, "filelist.txt")
+            purge_audio(list_file)
+        except FileNotFoundError:
+            pass
 
 def purge_audio(file):
     os.remove(file)
