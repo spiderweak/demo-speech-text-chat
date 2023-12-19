@@ -2,7 +2,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 from .routes import setup_routes
 
-socketio = SocketIO()
+socketio = SocketIO(manage_session = True)
 
 def create_app():
 

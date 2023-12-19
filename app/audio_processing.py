@@ -4,14 +4,21 @@ import whisper
 import os
 import subprocess
 from datetime import datetime
+import tempfile
+
+import logging
+import threading
 
 audio_model = whisper.load_model("base")
 
 class AudioTranscriptionManager:
-    def __init__(self):
+    def __init__(self, temp_folder: tempfile.TemporaryDirectory, session_id = ""):
         self.transcription = ""
         self.audio_blobs = deque()
         self.model = audio_model
+        self._temp_folder = temp_folder
+        self.temp_folder_name = temp_folder.name
+        self._session_id = session_id
 
     def append_audio(self, blob_file):
         # Add blob to the queue
@@ -19,7 +26,9 @@ class AudioTranscriptionManager:
         if len(self.audio_blobs) > 10:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
-        self.merge_audio_blobs()
+        thread = self.merge_audio_blobs()
+
+        return thread
 
     def merge_audio_blobs(self):
         """
@@ -31,14 +40,17 @@ class AudioTranscriptionManager:
 
         # Initialize an empty audio segment
 
-        list_file = 'filelist.txt'
         filename_date= datetime.now().strftime("%Y%m%d_%H%M%S")
-        current_audio_file = f"combined-{filename_date}.webm"
+
+        list_file = os.path.join(self.temp_folder_name, "filelist.txt")
 
         # Create a list file for FFmpeg
         with open(list_file, 'w') as f:
             for file_path in self.audio_blobs:
                 f.write(f"file '{file_path}'\n")
+
+
+        current_audio_file = os.path.join(self.temp_folder_name, f"combined-{filename_date}.webm")
 
         # Create the FFmpeg command
         ffmpeg_cmd = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", current_audio_file]
@@ -47,29 +59,46 @@ class AudioTranscriptionManager:
         # Execute the command
             subprocess.run(ffmpeg_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
             raise e
 
-        self.set_current_transcription(current_audio_file)
+        logging.debug("Merging Done, starting thread")
+        thread = threading.Thread(target=self.transcribe_audio, args=(current_audio_file,))
+        thread.start()
+        logging.debug(f"thread {thread} started")
 
-        purge_audio(current_audio_file)
+        return thread
 
-    def set_current_transcription(self, current_audio_file):
+    def transcribe_audio(self, current_audio_file):
         try:
             result = self.model.transcribe(current_audio_file, word_timestamps=True)
-            self.transcription = str(result['text'])
+            purge_audio(current_audio_file)
+            self.set_current_transcription(str(result['text']))
+            logging.debug("Transcription done")
+        except:
+            raise
+
+    def set_current_transcription(self, transcription):
+        try:
+            self.transcription = transcription
         except:
             pass
 
-
     def get_current_transcription(self) -> str:
         return self.transcription
+
 
     def renew(self):
         self.transcription = ""
         while self.audio_blobs:
             blob = self.audio_blobs.popleft()
             purge_audio(blob)
+
+        try:
+            list_file = os.path.join(self.temp_folder_name, "filelist.txt")
+            purge_audio(list_file)
+        except FileNotFoundError:
+            pass
 
 def purge_audio(file):
     os.remove(file)
