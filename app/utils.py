@@ -48,7 +48,7 @@ def process_transcription(filename: str, transcription_manager: AudioTranscripti
             logging.error(f"Processing thread for session {session_id} is taking longer than expected.")
             raise TimeoutError(f"Timeout reached when processing thread {thread} for session {session_id}")
 
-        transcription = transcription_manager.get_current_transcription()
+        transcription = transcription_manager.transcription
         socketio.emit('transcription', {'text': transcription}, to=session_id)
 
     except Exception as ex:
