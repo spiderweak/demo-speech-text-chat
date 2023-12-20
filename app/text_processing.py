@@ -104,14 +104,36 @@ def refactor_input(text:str) -> str:
 
 
 class Conversation:
+    """Manages and processes a conversation using the Llama language model.
+
+    This class handles the interaction flow of a chatbot conversation. It maintains the
+    conversation history, processes incoming messages, and generates responses using the
+    Llama model. The conversation begins with a predefined system message template, which
+    sets the initial context or instructions for the interaction.
+
+    Attributes:
+        messages (list of dict): A list of messages in the conversation, where each message
+                                 is a dictionary containing either a 'user' or 'system' key.
+        conversation (str): A string representation of the entire conversation, including
+                            both system and user messages.
+
+    Methods:
+        reception(message: str): Processes a received user message and updates the conversation.
+        respond(): Generates a response using the Llama model based on the current conversation.
+        generate_conversation(): Updates the conversation string based on accumulated messages.
+    """
 
     def __init__(self) -> None:
-        """ Initialize the conversation with the system template. """
+        """Initialize the conversation with the system template.
+
+        The conversation is started with a predefined system message template,
+        which sets the context or instructions for the conversation.
+        """
 
         self.messages = [{"system": DEFAULT_TEMPLATE}]
         self.conversation = self.messages[0]["system"]
 
-    def reception(self, message):
+    def reception(self, message: str):
         """Processes a received message and generates a response.
 
         This method appends the user's message to the conversation and then generates a response using the Llama model.
@@ -141,7 +163,7 @@ class Conversation:
         self.conversation = "".join([list(message.values())[0] for message in self.messages])
 
 
-    def respond(self):
+    def respond(self) -> str:
         """Generates and handles the response from the chatbot.
 
         This function calls the Llama model with the current conversation and appends the model's response to the conversation.
