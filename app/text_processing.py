@@ -1,20 +1,73 @@
+"""
+text_processing.py
+
+This module handles the processing of text using the Llama model. It includes functions and classes for text
+refactoring, conversation management, and interaction with the Llama language model.
+"""
+
+import os
+import logging
 from dotenv import load_dotenv
 from llama_cpp import Llama
-import logging
-import os
-
 
 # We're loading the model at the beginning,
 # it would probably be better to work another way
-# (also, it's noisy in the python console)
 
 load_dotenv()
 text_model_path = os.getenv("LLAMA_MODEL_PATH")
-llm = Llama(model_path=text_model_path, n_ctx=40960, n_batch=128, verbose=False)
 
-def refactor_input(text:str):
-    """
-        TODO: Improve the template as the answer is not satisfying for now
+if text_model_path is None:
+    raise EnvironmentError(f"LLAMA_MODEL_PATH environment variable not set")
+
+try:
+    llm = Llama(model_path=text_model_path, n_ctx=40960, n_batch=128, verbose=False)
+except ValueError as ve:
+    logging.error(ve)
+    raise
+
+
+
+DEFAULT_TEMPLATE="""
+[INST] <|system|>
+You are CHRONOS Chat, a helpful, respectful and honest chatbot interface.
+
+You are running on CPU-only devicess from the company Humanitas,
+a startup based in Montreal and lead by Abdo Shabah, for demonstration purpose.
+
+This chat interface aims to assist managers and employees
+so that they save time working on repetitive tasks,
+such as filling up forms, generating workflows, or gathering
+information from multiple sources.
+
+As part of this demo, you will be asked some generic questions.
+Please keep your answer short, under 200 characters if possible.
+Some questions might be asked in a different language than English,
+in that case, please answer in the same language the question was asked.
+</s>
+"""
+
+USER_PROMPT ="""
+<|user|>
+{INSERT_PROMPT_HERE} </s>
+
+<|assistant|>
+"""
+
+def refactor_input(text:str) -> str:
+    """Processes the given text to correct any transcription errors using the Llama model.
+
+    The function applies a template to the text for the Llama model to interpret and correct. The template
+    instructs the model to focus on correcting spelling, grammar, and other errors.
+
+    Args:
+        text (str): The text to be processed and corrected.
+
+    Returns:
+        str: The corrected text as processed by the Llama model.
+
+    Note:
+        - TODO: Improve the template as the current responses may not be satisfactory.
+        - TODO: Implement more specific error handling related to Llama model interactions.
     """
 
     template = """
@@ -40,106 +93,71 @@ def refactor_input(text:str):
 
     prompt = template.replace('{INSERT_PROMPT_HERE}', text)
 
-    # Better error handling would be necessary here:
-    # TODO: Better error handling
     try:
         output = llm(prompt, max_tokens=4096, echo=False)
-        answer_text = output['choices'][0]['text']
-        logging.info(f"{answer_text}")
+        return output['choices'][0]['text']
     except Exception as e:
         # Log the error and return an empty DataFrame or handle it as needed.
-        logging.error(f"Error when calling model: {e}")
-        answer_text = "Error in processing, sorry for the delay, please retry"
+        logging.error(f"Unexpected error: {e}")
 
-    return answer_text
+    return "Error in processing, sorry for the delay, please retry"
 
-
-DEFAULT_TEMPLATE="""
-[INST] <|system|>
-You are CHRONOS Chat, a helpful, respectful and honest chatbot interface.
-
-You are running on CPU-only devicess from the company Humanitas,
-a startup based in Montreal and lead by Abdo Shabah, for demonstration purpose.
-</s
-"""
-"""
-This chat interface aims to assist managers and employees
-so that they save time working on repetitive tasks,
-such as filling up forms, generating workflows, or gathering
-information from multiple sources.
-
-As part of this demo, you will be asked some generic questions.
-Please keep your answer short, under 200 characters if possible.
-Some questions might be asked in a different language than English,
-in that case, please answer in the same language the question was asked.
-</s>
-"""
-
-USER_PROMPT ="""
-<|user|>
-{INSERT_PROMPT_HERE} </s>
-
-<|assistant|>
-"""
 
 class Conversation:
 
     def __init__(self) -> None:
-        """
-            Initialize the conversation with the system template
-        """
+        """ Initialize the conversation with the system template. """
+
         self.messages = [{"system": DEFAULT_TEMPLATE}]
         self.conversation = self.messages[0]["system"]
 
-
-    def init_message(self, first_message = "<|user|> </s>"):
-        """
-            First message will be from the speech-to-text interface
-        """
-        self.message = USER_PROMPT
-
-        prompt = self.message.replace('{INSERT_PROMPT_HERE}', first_message)
-        self.messages.append({"user":prompt})
-
-        output = [list(message.values())[0] for message in self.messages]
-        self.conversation = "".join(output)
-
-        # Also, might be good to have a way to link the message to
-        # content in the conversation on screen to allow from user-side
-        # personalization and bugfixes
-
-
-    def respond(self):
-        """
-            This function generates and handles the response from the chatbot
-            TODO : Review this try-except part to handle the errors more properly
-        """
-
-        try:
-            output = llm(self.conversation , max_tokens=2048, echo=False)
-            answer_text = output['choices'][0]['text']
-            self.messages.append({"system": answer_text})
-            self.conversation = "".join([list(message.values())[0] for message in self.messages])
-            logging.info(f"{answer_text}")
-        except Exception as e:
-            # Log the error and return an empty DataFrame or handle it as needed.
-            logging.error(f"Error when calling model: {e}")
-            answer_text = "Error in processing, sorry for the delay, please retry"
-        return answer_text
-
-
     def reception(self, message):
-        """
-            What to do on message reception
-            TODO:
-            - Move the conversation generator to another function
-            - Remove the self.respond at the end, a cleaner solution will me necessary
+        """Processes a received message and generates a response.
+
+        This method appends the user's message to the conversation and then generates a response using the Llama model.
+
+        Args:
+            message (str): The message received from the user.
+
+        Returns:
+            str: The generated response from the chatbot.
+
+        Note:
+            - TODO: Move the conversation generator to another function
+            - TODO: Remove the self.respond at the end, a cleaner solution will me necessary
         """
 
         prompt = USER_PROMPT.replace('{INSERT_PROMPT_HERE}', message)
+        self.messages.append({"user": prompt})
 
-        self.messages.append({"user":prompt})
+        self.generate_conversation()
 
-        self.conversation = "".join(list(message.values())[0] for message in self.messages)
-        output = self.respond()
-        return output
+        return self.respond()
+
+
+    def generate_conversation(self):
+        """Generates the full conversation string from the accumulated messages."""
+
+        self.conversation = "".join([list(message.values())[0] for message in self.messages])
+
+
+    def respond(self):
+        """Generates and handles the response from the chatbot.
+
+        This function calls the Llama model with the current conversation and appends the model's response to the conversation.
+
+        Returns:
+            str: The response generated by the chatbot.
+        """
+        try:
+            output = llm(self.conversation , max_tokens=2048, echo=False)
+            answer_text = output['choices'][0]['text'] # type:ignore
+            self.messages.append({"system": answer_text})
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            answer_text = "Unexpected error, please retry."
+
+        self.generate_conversation()
+
+        return answer_text
+
