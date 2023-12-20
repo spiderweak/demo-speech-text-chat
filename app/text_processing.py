@@ -95,7 +95,7 @@ def refactor_input(text:str) -> str:
 
     try:
         output = llm(prompt, max_tokens=4096, echo=False)
-        return output['choices'][0]['text']
+        return output['choices'][0]['text'] # type:ignore
     except Exception as e:
         # Log the error and return an empty DataFrame or handle it as needed.
         logging.error(f"Unexpected error: {e}")
