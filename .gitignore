@@ -1,6 +1,3 @@
 .venv/
 *.pyc
-minutes/
-filelist.txt
-*.webm
 app/models/
