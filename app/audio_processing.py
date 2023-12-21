@@ -163,7 +163,7 @@ class AudioTranscriptionManager:
 
 
     def renew(self):
-        """Resets the transcription manager, clearing any stored transcriptions 
+        """Resets the transcription manager, clearing any stored transcriptions
         and audio blobs, and cleans up related temporary files.
         """
 
@@ -178,14 +178,14 @@ class AudioTranscriptionManager:
 
 
 def purge_file(file: str):
-    """
-    Attempts to delete the specified file.
+    """Attempts to delete the specified file.
 
     Args:
         file (str): The path of the file to be deleted.
 
     Logs a warning if the file deletion fails.
     """
+
     try:
         os.remove(file)
     except OSError as e:
