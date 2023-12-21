@@ -31,6 +31,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Run the Flask application with Socket.IO support.')
     parser.add_argument('--log-level', type=str, default='INFO', help='Set the logging level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)')
     parser.add_argument('--log-file', type=str, default='log.txt', help='Set the log file location')
+    parser.add_argument('--headless', action='store_true', help='Run the server in headless mode (no HTTP routes)')
 
     return parser.parse_args()
 
@@ -42,7 +43,7 @@ def main():
     configure_logging(args.log_level, args.log_file)
     load_environment_variables()
 
-    app = create_app()
+    app = create_app(headless=args.headless)
 
     debug_mode = os.getenv('FLASK_DEBUG', 'False') == 'True'
     host = os.getenv('FLASK_HOST', '0.0.0.0')
