@@ -70,6 +70,15 @@ python run.py
 
 Access the web application at `http://127.0.0.1:5000/`.
 
+If necessary, you can run this application in headless mode to put your own frontend interface,
+don't forget you still need to send your data to the correct backend routes.
+
+```bash
+python run.py --headless
+```
+
+This last feature has not been extensively tested.
+
 ## Docker Support
 
 If you wish to use Docker for deployment:
@@ -84,6 +93,12 @@ docker build -t demo-speech-text-chat .
 
 ```bash
 docker run -p 5000:5000 demo-speech-text-chat
+```
+
+As you can do with the non-dockerized version, you can run the project with docker in headless mode:
+
+```bash
+docker run -p 5000:5000 demo-speech-text-chat --headless
 ```
 
 ## Interfaces diagram
