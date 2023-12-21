@@ -10,11 +10,21 @@ This project is a Flask web application that captures audio from the user's micr
 - Display the transcription result on the web page.
 - Working chatbot
 - Real Time Transcription
+- More logging
 
 # Todo
 
 - Various feedback loops to improve the quality of the transcript as well as the questions/answers
-- More logging, especially to add conversation to contexts in case further processing is needed
+- add conversation to contexts in case further processing is needed
+
+Also:
+- Fix unsafe Wekzeug usage for production
+- Improve the template as the current responses may not be satisfactory.
+- Implement more specific error handling related to Llama model interactions.
+
+And:
+- Check if text model exists, download if not exist, can be usefull to log something in that case
+- Log message in case ffmpeg is not set up
 
 ## Getting Started
 

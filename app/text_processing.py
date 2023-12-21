@@ -143,10 +143,6 @@ class Conversation:
 
         Returns:
             str: The generated response from the chatbot.
-
-        Note:
-            - TODO: Move the conversation generator to another function
-            - TODO: Remove the self.respond at the end, a cleaner solution will me necessary
         """
 
         prompt = USER_PROMPT.replace('{INSERT_PROMPT_HERE}', message)
