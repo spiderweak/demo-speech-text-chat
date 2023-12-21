@@ -2,8 +2,8 @@
 set -e
 
 # Path to where the model will be stored
-MODEL_PATH="/app/app/models/zephyr-7b-beta.Q4_K_M.gguf"
-MODEL_URL="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf"
+MODEL_PATH="/app/app/models/zephyr-7b-beta.Q6_K.gguf"
+MODEL_URL="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q6_K.gguf"
 
 # Check if the model file exists and download it if not
 if [ ! -f "$MODEL_PATH" ]; then
@@ -12,5 +12,5 @@ if [ ! -f "$MODEL_PATH" ]; then
 fi
 
 # Execute the main command (e.g., running a Python script)
-exec "$@"
+exec python3 ./run.py "$@"
 

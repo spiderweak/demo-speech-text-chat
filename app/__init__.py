@@ -7,7 +7,7 @@ from .routes import setup_routes
 
 socketio = SocketIO(manage_session = True)
 
-def create_app() -> Flask:
+def create_app(headless: bool = False) -> Flask:
     """
     Create and configure an instance of the Flask application.
 
@@ -16,9 +16,10 @@ def create_app() -> Flask:
     """
 
     app = Flask(__name__)
-
     socketio.init_app(app)
-    setup_routes(app)
+
+    if not headless:
+        setup_routes(app)
 
     # Importing socket routes here to avoid circular dependencies
     from . import socket_routes
