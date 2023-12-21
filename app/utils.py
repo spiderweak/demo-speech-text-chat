@@ -1,5 +1,6 @@
-from datetime import datetime
+import os
 import logging
+from datetime import datetime
 
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
@@ -22,7 +23,7 @@ def generate_audioblob_filename(folder_name: str) -> str:
     """
 
     filename_date = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{folder_name}/{filename_date}.webm"
+    filename = os.path.join(folder_name, f"{filename_date}.webm")
 
     return filename
 
