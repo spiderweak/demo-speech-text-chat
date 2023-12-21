@@ -170,6 +170,7 @@ class Conversation:
         try:
             output = llm(self.conversation , max_tokens=2048, echo=False)
             answer_text = output['choices'][0]['text'] # type:ignore
+            logging.info(f"\nCHATBOT ANSWER \n {answer_text}")
             self.messages.append({"system": answer_text})
         except Exception as e:
             logging.error(f"Unexpected error: {e}")

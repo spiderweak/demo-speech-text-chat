@@ -25,6 +25,7 @@ Also:
 And:
 - Check if text model exists, download if not exist, can be usefull to log something in that case
 - Log message in case ffmpeg is not set up
+- Stream answer
 
 ## Getting Started
 
