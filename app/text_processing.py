@@ -7,25 +7,12 @@ refactoring, conversation management, and interaction with the Llama language mo
 
 import os
 import logging
-from dotenv import load_dotenv
-from llama_cpp import Llama
+from .utils import load_text_model
 
 # We're loading the model at the beginning,
 # it would probably be better to work another way
 
-load_dotenv()
-text_model_path = os.getenv("LLAMA_MODEL_PATH")
-
-if text_model_path is None:
-    raise EnvironmentError(f"LLAMA_MODEL_PATH environment variable not set")
-
-try:
-    llm = Llama(model_path=text_model_path, n_ctx=40960, n_batch=128, verbose=False)
-except ValueError as ve:
-    logging.error(ve)
-    raise
-
-
+llm = load_text_model()
 
 DEFAULT_TEMPLATE="""
 [INST] <|system|>
