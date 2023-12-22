@@ -25,6 +25,8 @@ def load_environment_variables():
 
     load_dotenv()
 
+    logging.debug("Environment variables loaded")
+
 def parse_arguments():
     """Parse command line arguments."""
 
