@@ -37,6 +37,7 @@ What things you need to install the software and how to install them:
 python3
 pip
 virtualenv (optional)
+ffmpeg (for the audio processing (both this project and openai-whisper))
 Docker (optional for containerization)
 ```
 
