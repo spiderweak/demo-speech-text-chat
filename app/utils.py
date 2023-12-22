@@ -84,13 +84,18 @@ def load_text_model(model_path = None, model_url = "https://huggingface.co/TheBl
 
     if not os.path.exists(model_path):
         model_url = os.getenv("LLAMA_MODEL_URL") or model_url
-        print(f"Model not found at {model_path}, downloading from {model_url}...")
+        logging.warning(f"Model not found at {model_path}, downloading from {model_url}...")
+
         response = requests.get(model_url)
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        with open(model_path, 'wb') as model_file:
-            model_file.write(response.content)
+
+        if response.status_code == 200:
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            with open(model_path, 'wb') as model_file:
+                model_file.write(response.content)
+        else:
+            raise Exception(f"Failed to download model. HTTP status code: {response.status_code}")
     else:
-        print(f"Model found at {model_path}, loading...")
+        logging.debug(f"Model found at {model_path}, loading...")
 
     try:
         llm = Llama(model_path=model_path, n_ctx=40960, n_batch=128, verbose=False)

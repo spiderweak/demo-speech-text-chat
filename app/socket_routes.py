@@ -84,11 +84,14 @@ def handle_text_message(received_data: Any):
         logging.error(f"Invalid conversation manager for session ID: {session_id}")
         return
 
-    logging.debug(f"Received message data : {received_data}")
+    logging.debug(f"Received message data: {received_data}")
 
     # Send message to conversation manager, receive response
-    answer = conversation_manager.reception(received_data)
+    code, answer = conversation_manager.reception(received_data)
 
-    logging.debug(f"LLM response built : {answer}")
-
-    socketio.emit('bot_message', answer, to=session_id)
+    if code == 200:
+        logging.debug(f"LLM response built: {answer}")
+        socketio.emit('bot_message', answer, to=session_id)
+    else:
+        logging.debug(f"Error {code}: {answer}")
+        socketio.emit('error_message', answer, to=session_id)

@@ -177,5 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
         displayBotMessage(data)
     });
 
+    socket.on('error_message', data => {
+        // Update the transcription result on the page
+        displayErrorMessage(data)
+    });
+
 });
 
