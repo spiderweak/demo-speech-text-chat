@@ -123,6 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         newMessageDiv.classList.add(...baseClasses, ...typeClasses[messageType]);
 
+        // Make error messages clickable and dismissible
+    if (messageType === 'error') {
+        newMessageDiv.classList.add('clickable');
+        newMessageDiv.addEventListener('click', function() {
+            this.remove();  // Remove the message element when clicked
+        });
+    }
 
         chatMessages.appendChild(newMessageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
