@@ -55,6 +55,8 @@ class AudioTranscriptionManager:
 
         self._session_id = session_id or ""
 
+        self.ffmpeg_installed = check_ffmpeg_installed()
+
 
     @property
     def transcription(self) -> str:
@@ -77,7 +79,6 @@ class AudioTranscriptionManager:
         self._transcription = transcription
 
 
-
     def append_audio(self, blob_file: str) -> threading.Thread:
         """Appends an audio blob file to the queue and initiates merging and transcription if necessary.
 
@@ -90,7 +91,6 @@ class AudioTranscriptionManager:
         Returns:
             threading.Thread: The thread initiated for merging and transcribing the audio blobs.
         """
-
         self.audio_blobs.append(blob_file)
 
         if len(self.audio_blobs) > 10:
@@ -191,3 +191,16 @@ def purge_file(file: str):
     except OSError as e:
         logging.warning(f"Failed to delete file: {e}")
 
+
+def check_ffmpeg_installed():
+    """Check if ffmpeg is installed on the system."""
+    try:
+        # Run 'ffmpeg -version' command and capture its output
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error("ffmpeg is not installed or not in PATH.")
+        return False
+    except FileNotFoundError:
+        logging.error("ffmpeg command not found.")
+        return False

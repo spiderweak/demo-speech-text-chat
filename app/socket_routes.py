@@ -16,6 +16,7 @@ from . import socketio
 from .audio_processing import AudioTranscriptionManager
 from .text_processing import Conversation
 from .utils import generate_audioblob_filename, save_data_to_file, process_transcription
+from .custom_exceptions import MissingPackageError
 
 # Dictionary to manage session states and associated objects for each client.
 session_managers: Dict[str, Tuple[AudioTranscriptionManager, Conversation]] = {}
@@ -56,7 +57,11 @@ def handle_audio_chunk(received_data: Any):
     filename = generate_audioblob_filename(transcription_manager.temp_folder_name)
     save_data_to_file(received_data, filename)
 
-    process_transcription(filename, transcription_manager, session_id)
+    try:
+        process_transcription(filename, transcription_manager, session_id)
+    except MissingPackageError:
+        socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
+
 
 
 @socketio.on('user_message')

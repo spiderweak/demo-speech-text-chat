@@ -7,7 +7,7 @@ from llama_cpp import Llama
 
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
-from .custom_exceptions import TimeoutError
+from .custom_exceptions import TimeoutError, MissingPackageError
 
 DEFAULT_TIMEOUT = 8 # in seconds
 
@@ -43,6 +43,10 @@ def process_transcription(filename: str, transcription_manager: AudioTranscripti
         Exception: Propagates exceptions that occur during processing.
         TimeoutError: If the thread processing the transcription exceeds the allowed time.
     """
+
+    if not transcription_manager.ffmpeg_installed:
+        logging.warning("ffmpeg package is not installed on the system, the transcription will be unavailable")
+        raise MissingPackageError("ffmpeg not installed on system")
 
     try:
         thread = transcription_manager.append_audio(filename)
