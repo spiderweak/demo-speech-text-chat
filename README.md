@@ -23,7 +23,6 @@ Also:
 - Implement more specific error handling related to Llama model interactions.
 
 And:
-- Check if text model exists, download if not exist, can be usefull to log something in that case
 - Log message in case ffmpeg is not set up
 - Stream answer
 
