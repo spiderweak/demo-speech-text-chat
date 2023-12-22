@@ -23,7 +23,6 @@ Also:
 - Implement more specific error handling related to Llama model interactions.
 
 And:
-- Log message in case ffmpeg is not set up
 - Stream answer
 
 ## Getting Started
