@@ -36,4 +36,4 @@ EXPOSE 5000
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Set the command to run the application
-CMD ["python3", "./run.py"]
+CMD []
