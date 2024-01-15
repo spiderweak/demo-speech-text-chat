@@ -6,7 +6,7 @@ from flask_socketio import SocketIO
 
 from .routes import setup_routes
 
-socketio = SocketIO(manage_session = True)
+socketio = SocketIO(manage_session = True, cors_allowed_origins="*")
 
 def create_app(headless: bool = False) -> Flask:
     """
