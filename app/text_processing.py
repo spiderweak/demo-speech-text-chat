@@ -9,7 +9,7 @@ import os
 import logging
 import threading
 from .utils import load_text_model
-from typing import Tuple
+from typing import Tuple, Optional
 
 # We're loading the model at the beginning,
 # it would probably be better to work another way
@@ -107,7 +107,7 @@ def refactor_input(text:str) -> str:
     return "Error in processing, sorry for the delay, please retry"
 
 class Message:
-    def __init__(self, id: int, emitter: str, content: str) -> None:
+    def __init__(self, id: int, emitter: str, content: str = "") -> None:
         self.id = id
         self.emitter = emitter
         self.content = content
@@ -135,6 +135,7 @@ class Message:
     @content.setter
     def content(self, content):
         self._content = content
+
 
 class Conversation:
     """Manages and processes a conversation using the Llama language model.
@@ -211,14 +212,17 @@ class Conversation:
                 model_ready_condition.wait()
 
         try:
-            output = llm(self.conversation , max_tokens=2048, echo=False)
-            answer_text = output['choices'][0]['text'] # type:ignore
-            logging.info(f"\nCHATBOT ANSWER \n {answer_text}")
-            new_message = Message(len(self.messages), "system", answer_text)
+            output = llm(self.conversation , max_tokens=2048, echo=False, stream=True)
+            new_message = Message(len(self.messages), "system")
             self.messages.append(new_message)
+            for item in output:
+                self.messages[-1].content.append(item['choices'][0]['text']) # type:ignore
+
             self.generate_conversation()
 
-            return 200, answer_text
+            logging.info(f"\nCHATBOT ANSWER \n {self.messages[-1].content}")
+
+            return 200, self.messages[-1].content
 
         except Exception as e:
             logging.error(f"Unexpected error: {e}")
