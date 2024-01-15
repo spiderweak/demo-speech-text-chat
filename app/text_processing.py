@@ -106,6 +106,35 @@ def refactor_input(text:str) -> str:
 
     return "Error in processing, sorry for the delay, please retry"
 
+class Message:
+    def __init__(self, id: int, emitter: str, content: str) -> None:
+        self.id = id
+        self.emitter = emitter
+        self.content = content
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id):
+        self._id = id
+
+    @property
+    def emitter(self):
+        return self._emitter
+
+    @emitter.setter
+    def emitter(self, emitter):
+        self._emitter = emitter
+
+    @property
+    def content(self):
+        return self._content
+
+    @content.setter
+    def content(self, content):
+        self._content = content
 
 class Conversation:
     """Manages and processes a conversation using the Llama language model.
@@ -116,7 +145,7 @@ class Conversation:
     sets the initial context or instructions for the interaction.
 
     Attributes:
-        messages (list of dict): A list of messages in the conversation, where each message
+        messages (list of Message): A list of messages in the conversation, where each message
                                  is a dictionary containing either a 'user' or 'system' key.
         conversation (str): A string representation of the entire conversation, including
                             both system and user messages.
@@ -134,8 +163,10 @@ class Conversation:
         which sets the context or instructions for the conversation.
         """
 
-        self.messages = [{"system": DEFAULT_TEMPLATE}]
-        self.conversation = self.messages[0]["system"]
+        init_message = Message(0, "system", DEFAULT_TEMPLATE)
+
+        self.messages = [init_message]
+        self.conversation = self.messages[0].content
 
     def reception(self, message: str):
         """Processes a received message and generates a response.
@@ -152,7 +183,8 @@ class Conversation:
             return 400, "Model is not loaded yet, please retry in 2 minutes"
 
         prompt = USER_PROMPT.replace('{INSERT_PROMPT_HERE}', message)
-        self.messages.append({"user": prompt})
+        new_message = Message(len(self.messages), "user", prompt)
+        self.messages.append(new_message)
 
         self.generate_conversation()
 
@@ -162,7 +194,8 @@ class Conversation:
     def generate_conversation(self):
         """Generates the full conversation string from the accumulated messages."""
 
-        self.conversation = "".join([list(message.values())[0] for message in self.messages])
+        self.conversation = "".join([list(message.content)[0] for message in self.messages])
+        logging.info(f"\n\n\nConversation:\n {self.conversation}\n\n\n")
 
 
     def respond(self) -> Tuple[int, str]:
@@ -181,7 +214,8 @@ class Conversation:
             output = llm(self.conversation , max_tokens=2048, echo=False)
             answer_text = output['choices'][0]['text'] # type:ignore
             logging.info(f"\nCHATBOT ANSWER \n {answer_text}")
-            self.messages.append({"system": answer_text})
+            new_message = Message(len(self.messages), "system", answer_text)
+            self.messages.append(new_message)
             self.generate_conversation()
 
             return 200, answer_text
