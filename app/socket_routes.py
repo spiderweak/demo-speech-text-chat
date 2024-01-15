@@ -14,7 +14,7 @@ from typing import Dict, Tuple, Any
 from flask import request
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
-from .text_processing import Conversation
+from .text_processing import Conversation, Message
 from .utils import generate_audioblob_filename, save_data_to_file, process_transcription
 from .custom_exceptions import MissingPackageError
 
@@ -28,7 +28,7 @@ def handle_connect():
     session_id = request.sid  # type:ignore
     temp_folder = tempfile.TemporaryDirectory()
 
-    session_managers[session_id] = (AudioTranscriptionManager(temp_folder, session_id=session_id), Conversation())
+    session_managers[session_id] = (AudioTranscriptionManager(temp_folder, session_id=session_id), Conversation(session_id=session_id))
 
 
 @socketio.on('disconnect')
@@ -92,11 +92,17 @@ def handle_text_message(received_data: Any):
     logging.debug(f"Received message data: {received_data}")
 
     # Send message to conversation manager, receive response
-    code, answer = conversation_manager.reception(received_data)
+    code, message = conversation_manager.reception(received_data)
+
+    response = {
+                "message_id": str(message.id),
+                "sender" : message.emitter,
+                "content": message.content
+            }
 
     if code == 200:
-        logging.debug(f"LLM response built: {answer}")
-        socketio.emit('bot_message', answer, to=session_id)
+        logging.debug(f"LLM response built: {response}")
     else:
-        logging.debug(f"Error {code}: {answer}")
-        socketio.emit('error_message', answer, to=session_id)
+        logging.debug(f"Error {code}: {response}")
+
+    socketio.emit('message', response, to=session_id)

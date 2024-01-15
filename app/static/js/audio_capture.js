@@ -108,9 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function displayMessage(messageText, messageType) {
+    function displayMessage(messageType, messageText, messageId = '0') {
         var chatMessages = document.getElementById('chatMessages');
         var newMessageDiv = document.createElement('div');
+
+        newMessageDiv.setAttribute('data-message-id', messageId);
 
         newMessageDiv.textContent = messageText;
 
@@ -118,13 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
         var typeClasses = {
             'user': ['bg-blue-200', 'rounded-bl-lg', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-none', 'text-right'],
             'error': ['bg-red-200', 'rounded-lg', 'text-red-600'],
-            'bot': ['bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'rounded-br-lg', 'text-black']
+            'debug': ['bg-green-200', 'rounded-lg', 'text-green-600'],
+            'system': ['bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'rounded-br-lg', 'text-black']
         };
 
         newMessageDiv.classList.add(...baseClasses, ...typeClasses[messageType]);
 
         // Make error messages clickable and dismissible
-    if (messageType === 'error') {
+    if (messageType === 'error' || messageType === 'debug') {
         newMessageDiv.classList.add('clickable');
         newMessageDiv.addEventListener('click', function() {
             this.remove();  // Remove the message element when clicked
@@ -136,23 +139,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    function displayUserMessage(messageText) {
-        displayMessage(messageText, 'user')
-    }
+    function appendMessage(messageType, messageText, messageId) {
+        var existingMessage = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
 
-    function displayErrorMessage(messageText) {
-        displayMessage(messageText, 'error')
-    }
+        if (existingMessage) {
+            // If the message with this ID already exists, append new text
+            existingMessage.textContent += messageText;
+        } else {
+            // If it does not exist, create a new message
+            displayMessage(messageType, messageText, messageId);
+        }
 
-    function displayBotMessage(messageText) {
-        displayMessage(messageText, 'bot')
     }
 
     function sendMessage() {
         var message = chatInput.value.trim();
         if (message) {
             // Append the message to chatMessages div
-            displayUserMessage(message)
+            displayMessage("user", message)
 
             // Reset the input field
             chatInput.value = '';
@@ -179,14 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(data.text)
     });
 
-    socket.on('bot_message', data => {
-        // Update the transcription result on the page
-        displayBotMessage(data)
+    socket.on('message', data => {
+        console.log(data)
+        displayMessage(data.sender, data.content, data.message_id)
     });
 
-    socket.on('error_message', data => {
-        // Update the transcription result on the page
-        displayErrorMessage(data)
+    socket.on('stream_message', data => {
+        // Handle the streamed chunk of data
+        console.log('Received streamed chunk:', data);
+        appendMessage(data.sender, data.content, data.message_id)
     });
 
 });
