@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             console.error('MediaDevices API not available');
-            displayErrorMessage('The MediaDevices API is not available in your browser.');
+            displayMessage('error', 'The MediaDevices API is not available in your browser.');
         }
     });
 
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error accessing the microphone:', error);
-            displayErrorMessage('Error accessing the microphone');
+            displayMessage('error', 'Error accessing the microphone');
         });
     };
 
@@ -192,6 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle the streamed chunk of data
         console.log('Received streamed chunk:', data);
         appendMessage(data.sender, data.content, data.message_id)
+    });
+
+    socket.on('speech_file', function(data) {
+        console.log('Received audio stream', data)
+        var audio = new Audio('data:audio/mp3;base64,' + data.audio);
+        audio.play();
     });
 
 });

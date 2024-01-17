@@ -3,7 +3,7 @@ FROM openjdk:8-jdk-slim as base
 
 # Install Packages
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip ffmpeg curl
+    apt-get install -y python3 python3-pip ffmpeg curl espeak
 
 RUN mkdir /app
 

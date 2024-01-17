@@ -1,9 +1,12 @@
 import os
 import requests
 import logging
+import pyttsx3
+import uuid
 from dotenv import load_dotenv
 from datetime import datetime
 from llama_cpp import Llama
+
 
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
@@ -107,3 +110,16 @@ def load_text_model(model_path = None, model_url = "https://huggingface.co/TheBl
     except ValueError as ve:
         logging.error(ve)
         raise
+
+class TextToSpeechConverter:
+    def __init__(self):
+        self.engine = pyttsx3.init()
+
+    def convert_text_to_speech(self, text, folder) -> str:
+        file_name = str(uuid.uuid4()) + ".mp3"
+        temp_filename = os.path.join(folder, file_name)
+
+        self.engine.save_to_file(text, temp_filename)
+        self.engine.runAndWait()
+
+        return temp_filename
