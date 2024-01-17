@@ -171,7 +171,7 @@ class Conversation:
         self._temp_folder = temp_folder or tempfile.TemporaryDirectory()
         self.temp_folder_name = self._temp_folder.name
 
-        self.tts_interface = TextToSpeechConverter()
+        self.tts_interface = None
 
     def reception(self, message: str):
         """Processes a received message and generates a response.
@@ -262,11 +262,9 @@ class Conversation:
 
     def talk_answer(self, sentence):
         try:
-            file_name = self.tts_interface.convert_text_to_speech(sentence, self.temp_folder_name)
-            with open(file_name, 'rb') as audio_file:
-                audio_data = audio_file.read()
-            base64_audio = base64.b64encode(audio_data).decode('utf-8')
+            self.tts_interface = TextToSpeechConverter()
+            base64_audio = self.tts_interface.convert_text_to_speech(sentence, self.temp_folder_name)
             socketio.emit('speech_file', {'audio': base64_audio}, to=self.session_id)
-            os.remove(file_name)
+            del self.tts_interface
         except Exception as e:
             logging.error(f"Audio error : {e}")
