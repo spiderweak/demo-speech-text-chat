@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('sendButton')
     let mediaRecorder;
     let audioChunks = [];
+    let audioQueue = [];
     let isRecording = false;
+    let isPlaying = false;
     const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
 
     const chatInput = document.getElementById('chatInput');
@@ -167,6 +169,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function playNextInQueue() {
+        if (!isPlaying && audioQueue.length > 0) {
+            isPlaying = true;
+
+            var audio = new Audio(audioQueue.shift()); // Removes the first element from the queue and plays it
+            audio.play();
+
+            audio.onended = function() {
+                isPlaying = false;
+                playNextInQueue(); // Play next audio after the current one ends
+            };
+        }
+    }
+
     function adjustTextareaHeight(textarea) {
         textarea.style.height = 'auto';
         textarea.style.height = textarea.scrollHeight + 'px';
@@ -191,14 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('stream_message', data => {
         // Handle the streamed chunk of data
         console.log('Received streamed chunk:', data);
-        appendMessage(data.sender, data.content, data.message_id)
+        appendMessage(data.sender, data.content, data.message_id);
     });
 
     socket.on('speech_file', function(data) {
-        console.log('Received audio stream', data)
-        var audio = new Audio('data:audio/mp3;base64,' + data.audio);
-        audio.play();
+        console.log('Received audio stream', data);
+        audioQueue.push('data:audio/mp3;base64,' + data.audio);
+        playNextInQueue();
     });
-
 });
 
