@@ -7,9 +7,10 @@ audio processing and text conversation handling.
 
 import logging
 import tempfile
-import time
+import pyttsx3
 from datetime import datetime
 from typing import Dict, Tuple, Any
+
 
 from flask import request
 from . import socketio
@@ -100,9 +101,11 @@ def handle_text_message(received_data: Any):
                 "content": message.content
             }
 
-    if code == 200:
-        logging.debug(f"LLM response built: {response}")
-    else:
-        logging.debug(f"Error {code}: {response}")
-
     socketio.emit('message', response, to=session_id)
+
+    if code != 200:
+        logging.debug(f"Error {code}: {response}")
+    else:
+        logging.debug(f"LLM response built: {response}")
+
+

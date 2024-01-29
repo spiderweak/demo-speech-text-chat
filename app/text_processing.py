@@ -5,13 +5,17 @@ This module handles the processing of text using the Llama model. It includes fu
 refactoring, conversation management, and interaction with the Llama language model.
 """
 
-import os
 import logging
 import threading
-from .utils import load_text_model
+import tempfile
+import uuid
+import re
+import base64
+import os
+
+from .utils import load_text_model, TextToSpeechConverter
 from typing import Tuple, Optional
 from .socket_routes import socketio
-import uuid
 
 # We're loading the model at the beginning,
 # it would probably be better to work another way
@@ -151,7 +155,7 @@ class Conversation:
         generate_conversation(): Updates the conversation string based on accumulated messages.
     """
 
-    def __init__(self, session_id : Optional[str] = None) -> None:
+    def __init__(self, temp_folder: Optional[tempfile.TemporaryDirectory] = None, session_id : Optional[str] = None) -> None:
         """Initialize the conversation with the system template.
 
         The conversation is started with a predefined system message template,
@@ -164,6 +168,10 @@ class Conversation:
         self.conversation = self.messages[0].content
 
         self.session_id = session_id
+        self._temp_folder = temp_folder or tempfile.TemporaryDirectory()
+        self.temp_folder_name = self._temp_folder.name
+
+        self.tts_interface = None
 
     def reception(self, message: str):
         """Processes a received message and generates a response.
@@ -208,14 +216,21 @@ class Conversation:
             while llm is None:
                 model_ready_condition.wait()
 
+        speech_message = ""
         try:
             output = llm(self.conversation, max_tokens=2048, echo=False, stream=True)
             new_message = Message("system")
             for item in output:
                 chunck = item['choices'][0]['text'] # type:ignore
-                logging.info(f"\nCHATBOT CHUNK \n {chunck}")
+                logging.debug(f"\nCHATBOT CHUNK \n {chunck}")
                 self.stream_answer(new_message.id, chunck)
                 new_message.content += chunck
+                speech_message += chunck
+                if bool(re.search(r"[!.:;?]", chunck)):
+                    self.talk_answer(speech_message)
+                    logging.info(f"\nTTS CHUNK \n {speech_message}")
+                    speech_message = ""
+
 
             self.messages.append(new_message)
             self.generate_conversation()
@@ -239,10 +254,17 @@ class Conversation:
                 "sender" : "system",
                 "content": chunk
             }
-
-            logging.info(f"Sending data on channel 'stream_message' to {self.session_id} with response: {response}")
+            logging.debug(f"Sending data on channel 'stream_message' to {self.session_id} with response: {response}")
             # Emit the response chunk to the client
             socketio.emit('stream_message', response, to=self.session_id)  # 'chat_response' is the event name
-
         except Exception as e:
             logging.error(f"Error while streaming response: {e}")
+
+    def talk_answer(self, sentence):
+        try:
+            self.tts_interface = TextToSpeechConverter()
+            base64_audio = self.tts_interface.convert_text_to_speech(sentence, self.temp_folder_name)
+            socketio.emit('speech_file', {'audio': base64_audio}, to=self.session_id)
+            del self.tts_interface
+        except Exception as e:
+            logging.error(f"Audio error : {e}")

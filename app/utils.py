@@ -1,9 +1,15 @@
 import os
 import requests
 import logging
+import pyttsx3
+import uuid
+import base64
+import time
+
 from dotenv import load_dotenv
 from datetime import datetime
 from llama_cpp import Llama
+
 
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
@@ -107,3 +113,27 @@ def load_text_model(model_path = None, model_url = "https://huggingface.co/TheBl
     except ValueError as ve:
         logging.error(ve)
         raise
+
+class TextToSpeechConverter:
+    def __init__(self):
+        self.engine = pyttsx3.init()
+
+    def convert_text_to_speech(self, text, folder):
+        file_name = str(uuid.uuid4()) + ".mp3"
+        temp_filename = os.path.join(folder, file_name)
+
+        self.engine.save_to_file(text, temp_filename)
+        self.engine.runAndWait()
+
+        timeout = 10  # Timeout in seconds
+        start_time = time.time()
+        while not os.path.exists(temp_filename):
+            time.sleep(0.2)  # Wait a bit for the file to be created
+            if time.time() - start_time > timeout:
+                raise Exception("Timeout waiting for the audio file to be created.")
+
+        with open(temp_filename, 'rb') as audio_file:
+            audio_data = audio_file.read()
+            base64_audio = base64.b64encode(audio_data).decode('utf-8')
+
+        return base64_audio

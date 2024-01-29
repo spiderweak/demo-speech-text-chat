@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 from app import create_app, socketio
 
-
 def configure_logging(log_level: str, log_file: str):
     """Configure the logging for the application."""
 

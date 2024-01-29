@@ -2,6 +2,8 @@
 
 This project is a Flask web application that captures audio from the user's microphone and uses OpenAI's Whisper model for speech-to-text transcription.
 
+This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
+
 ## Features
 
 - Record audio directly in the web browser.
@@ -15,7 +17,7 @@ This project is a Flask web application that captures audio from the user's micr
 # Todo
 
 - Various feedback loops to improve the quality of the transcript as well as the questions/answers
-- add conversation to contexts in case further processing is needed
+- log conversations to central contexts in case further processing is needed
 
 Also:
 - Fix unsafe Wekzeug usage for production
@@ -33,13 +35,21 @@ These instructions will get you a copy of the project up and running on your loc
 
 What things you need to install the software and how to install them:
 
-```
-python3
-pip
-virtualenv (optional)
-ffmpeg (for the audio processing (both this project and openai-whisper))
-Docker (optional for containerization)
-```
+- python3
+- pip
+
+Also, for optional dependencies:
+
+- virtualenv
+- - ffmpeg (for the audio processing (both this project and openai-whisper))
+- Docker (optional for containerization)
+
+And for the audio outputs (dependencies from pyttsx3, see [Synthesizer support](https://pyttsx3.readthedocs.io/en/latest/support.html)):
+
+- sapi5 (Windows)
+- nsss (Mac OS)
+- espeak (Linux)
+
 
 ### Installing
 
@@ -130,5 +140,5 @@ Unless part of the system is incompatible with it, consider this project under C
 ## Acknowledgments
 
 Thanks to these project, that make most of the project run
-- OpenAI for the Whisper model
+- OpenAI for the Whisper model and for the disclaimer in the opening statement of this README.
 - Flask

@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('sendButton')
     let mediaRecorder;
     let audioChunks = [];
+    let audioQueue = [];
     let isRecording = false;
+    let isPlaying = false;
     const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
 
     const chatInput = document.getElementById('chatInput');
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             console.error('MediaDevices API not available');
-            displayErrorMessage('The MediaDevices API is not available in your browser.');
+            displayMessage('error', 'The MediaDevices API is not available in your browser.');
         }
     });
 
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Error accessing the microphone:', error);
-            displayErrorMessage('Error accessing the microphone');
+            displayMessage('error', 'Error accessing the microphone');
         });
     };
 
@@ -127,12 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         newMessageDiv.classList.add(...baseClasses, ...typeClasses[messageType]);
 
         // Make error messages clickable and dismissible
-    if (messageType === 'error' || messageType === 'debug') {
-        newMessageDiv.classList.add('clickable');
-        newMessageDiv.addEventListener('click', function() {
-            this.remove();  // Remove the message element when clicked
-        });
-    }
+        if (messageType === 'error' || messageType === 'debug') {
+            newMessageDiv.classList.add('clickable');
+            newMessageDiv.addEventListener('click', function() {
+                this.remove();  // Remove the message element when clicked
+            });
+        }
 
         chatMessages.appendChild(newMessageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -152,6 +154,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    function moveLoadingIndicator() {
+        var chatMessages = document.getElementById('chatMessages');
+        var loadingIndicator = document.getElementById('loading-indicator');
+
+        if (chatMessages.lastChild && loadingIndicator) {
+            chatMessages.appendChild(loadingIndicator); // Move the loading indicator to the end of chat messages
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
     function sendMessage() {
         var message = chatInput.value.trim();
         if (message) {
@@ -164,6 +176,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Scroll to the bottom of the chat
 
             socket.emit('user_message', message);
+
+            toggleLoadingIndicator(true)
+        }
+    }
+
+    function playNextInQueue() {
+        if (!isPlaying && audioQueue.length > 0) {
+            isPlaying = true;
+
+            var audio = new Audio(audioQueue.shift()); // Removes the first element from the queue and plays it
+            audio.play();
+
+            audio.onended = function() {
+                isPlaying = false;
+                playNextInQueue(); // Play next audio after the current one ends
+            };
+        }
+    }
+
+    function toggleLoadingIndicator(show) {
+        var loadingIndicator = document.getElementById('loading-indicator');
+        if (show) {
+            loadingIndicator.classList.remove('hidden');
+            moveLoadingIndicator()
+        } else {
+            loadingIndicator.classList.add('hidden');
         }
     }
 
@@ -185,14 +223,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('message', data => {
         console.log(data)
+        toggleLoadingIndicator(false)
         displayMessage(data.sender, data.content, data.message_id)
     });
 
     socket.on('stream_message', data => {
         // Handle the streamed chunk of data
         console.log('Received streamed chunk:', data);
-        appendMessage(data.sender, data.content, data.message_id)
+        toggleLoadingIndicator(false)
+        appendMessage(data.sender, data.content, data.message_id);
     });
 
+    socket.on('speech_file', function(data) {
+        console.log('Received audio stream', data);
+        audioQueue.push('data:audio/mp3;base64,' + data.audio);
+        playNextInQueue();
+    });
 });
 
