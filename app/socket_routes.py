@@ -16,7 +16,7 @@ from flask import request
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
 from .text_processing import Conversation, Message
-from .utils.utils import generate_audioblob_filename, save_data_to_file, process_transcription
+from .utils import generate_audioblob_filename, save_data_to_file, process_transcription
 from .custom_exceptions import MissingPackageError
 
 # Dictionary to manage session states and associated objects for each client.
