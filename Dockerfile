@@ -1,39 +1,40 @@
 # Base image with Python and Java (needed for PySpark)
-FROM openjdk:8-jdk-slim as base
+FROM python:3.12-slim as base
 
 # Install Packages
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip ffmpeg curl espeak
+    apt-get install -y python3 python3-pip ffmpeg curl espeak && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /app
+# Create a non-root user with a home directory (necessary for whisper)
+RUN groupadd -r chronos && useradd -r -g chronos -m -d /home/chronos chronos
+
+# Create necessary directories
+RUN mkdir /app && \
+    mkdir -p /app/app/templates && \
+    mkdir -p /app/app/static && \
+    mkdir -p /app/app/models
 
 WORKDIR /app
 
-COPY requirements.txt ./
-
-RUN mkdir -p ./app/templates
-RUN mkdir -p ./app/static
-RUN mkdir -p ./app/models
-
+COPY requirements.txt .env run.py entrypoint.sh ./
 COPY app/*.py ./app/
 COPY app/templates ./app/templates
 COPY app/static ./app/static
 
-COPY .env ./
-COPY run.py ./
-
+# Install Python dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the entrypoint script into the container
-COPY entrypoint.sh /app/entrypoint.sh
+# Give execution rights to the entrypoint script and ensure it's owned by chronos
+RUN chmod +x /app/entrypoint.sh && \
+    chown -R chronos:chronos /app
 
-# Give execution rights to the entrypoint script
-RUN chmod +x /app/entrypoint.sh
+# Switch to non-root user
+USER chronos
 
 EXPOSE 5000
 
 # Set the script as the entry point
 ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Set the command to run the application
 CMD []
