@@ -11,9 +11,9 @@ from datetime import datetime
 from llama_cpp import Llama
 
 
-from . import socketio
-from .audio_processing import AudioTranscriptionManager
-from .custom_exceptions import TimeoutError, MissingPackageError
+from .. import socketio
+from ..audio_processing import AudioTranscriptionManager
+from ..custom_exceptions import TimeoutError, MissingPackageError
 
 DEFAULT_TIMEOUT = 8 # in seconds
 

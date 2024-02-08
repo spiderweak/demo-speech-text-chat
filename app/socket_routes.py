@@ -16,7 +16,7 @@ from flask import request
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
 from .text_processing import Conversation, Message
-from .utils import generate_audioblob_filename, save_data_to_file, process_transcription
+from .utils.utils import generate_audioblob_filename, save_data_to_file, process_transcription
 from .custom_exceptions import MissingPackageError
 
 # Dictionary to manage session states and associated objects for each client.
@@ -64,7 +64,6 @@ def handle_audio_chunk(received_data: Any):
         socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
 
 
-
 @socketio.on('user_message')
 def handle_text_message(received_data: Any):
     """Handle a text message received from the user via Socket.IO.
@@ -107,5 +106,3 @@ def handle_text_message(received_data: Any):
         logging.debug(f"Error {code}: {response}")
     else:
         logging.debug(f"LLM response built: {response}")
-
-

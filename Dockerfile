@@ -12,9 +12,7 @@ RUN groupadd -r chronos && useradd -r -g chronos -m -d /home/chronos chronos
 
 # Create necessary directories
 RUN mkdir /app && \
-    mkdir -p /app/app/templates && \
-    mkdir -p /app/app/static && \
-    mkdir -p /app/app/models
+    mkdir -p /app/app/{templates,static,models,utils}
 
 WORKDIR /app
 
@@ -22,6 +20,7 @@ COPY requirements.txt .env run.py entrypoint.sh ./
 COPY app/*.py ./app/
 COPY app/templates ./app/templates
 COPY app/static ./app/static
+COPY app/utils ./app/utils
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt

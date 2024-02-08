@@ -13,7 +13,7 @@ import re
 import base64
 import os
 
-from .utils import load_text_model, TextToSpeechConverter
+from .utils.utils import load_text_model, TextToSpeechConverter
 from typing import Tuple, Optional
 from .socket_routes import socketio
 
