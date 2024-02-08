@@ -121,9 +121,15 @@ As you can do with the non-dockerized version, you can run the project with dock
 docker run -p 5000:5000 demo-speech-text-chat --headless
 ```
 
+The container does not copy chat models locally, but you can mount the models in a dedicated folder if you want to use your own model. Just don't forget to change the environment variables defined in the .env file:
+
+```bash
+docker run -p 5000:5000 -v $(pwd)/app/models:/app/models demo-speech-text-chat
+```
+
 ## Interfaces diagram
 
-![interfaces diagram](https://github.com/spiderweak/demo-speech-text-chat/blob/main/diagram.png "Chatbot integration diagram")
+![Chatbot integration diagram](diagram.jpg) "Chatbot integration diagram"
 
 ## Contributing
 
