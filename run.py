@@ -19,12 +19,14 @@ def configure_logging(log_level: str, log_file: str):
 
     logging.basicConfig(level=numeric_level, filename=log_file, filemode='a')
 
+
 def load_environment_variables():
     """Load environment variables from the .env file."""
 
     load_dotenv()
 
     logging.debug("Environment variables loaded")
+
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -46,6 +48,7 @@ def main():
 
     app = create_app(headless=args.headless)
 
+    # It could be useful to put this initialisation elsewhere in order to distinguish between testing and production
     debug_mode = os.getenv('FLASK_DEBUG', 'False') == 'True'
     host = os.getenv('FLASK_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_PORT', '5000'))
