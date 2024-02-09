@@ -16,8 +16,7 @@ from collections import deque
 from datetime import datetime
 from typing import Optional, Deque
 
-from .utils import purge_file
-
+from .utils import purge_file, check_ffmpeg_installed
 
 # Load Whisper model globally.
 audio_model = whisper.load_model("base")
@@ -178,17 +177,3 @@ class AudioTranscriptionManager:
 
         list_file = os.path.join(self.temp_folder_name, "filelist.txt")
         purge_file(list_file)
-
-
-def check_ffmpeg_installed():
-    """Check if ffmpeg is installed on the system."""
-    try:
-        # Run 'ffmpeg -version' command and capture its output
-        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logging.error("ffmpeg is not installed or not in PATH.")
-        return False
-    except FileNotFoundError:
-        logging.error("ffmpeg command not found.")
-        return False
