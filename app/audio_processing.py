@@ -10,11 +10,14 @@ import subprocess
 import tempfile
 import threading
 import logging
+import whisper
+
 from collections import deque
 from datetime import datetime
 from typing import Optional, Deque
 
-import whisper
+from .utils import purge_file
+
 
 # Load Whisper model globally.
 audio_model = whisper.load_model("base")
@@ -175,21 +178,6 @@ class AudioTranscriptionManager:
 
         list_file = os.path.join(self.temp_folder_name, "filelist.txt")
         purge_file(list_file)
-
-
-def purge_file(file: str):
-    """Attempts to delete the specified file.
-
-    Args:
-        file (str): The path of the file to be deleted.
-
-    Logs a warning if the file deletion fails.
-    """
-
-    try:
-        os.remove(file)
-    except OSError as e:
-        logging.warning(f"Failed to delete file: {e}")
 
 
 def check_ffmpeg_installed():

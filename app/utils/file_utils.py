@@ -55,3 +55,17 @@ def save_data_to_file(data: bytes, filename: str):
     except IOError as e:
         logging.error(f"Failed to save data to {filename}: {e}")
         raise
+
+def purge_file(file: str):
+    """Attempts to delete the specified file.
+
+    Args:
+        file (str): The path of the file to be deleted.
+
+    Logs a warning if the file deletion fails.
+    """
+
+    try:
+        os.remove(file)
+    except OSError as e:
+        logging.warning(f"Failed to delete file: {e}")
