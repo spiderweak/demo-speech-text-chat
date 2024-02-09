@@ -10,22 +10,22 @@ This software is provided as is, without warranty of any kind, express or implie
 - Send the audio data to a Flask server.
 - Use Whisper to transcribe the audio to text.
 - Display the transcription result on the web page.
-- Working chatbot
 - Real Time Transcription
-- More logging
+- Working chatbot
+- Streamed response
+- Text-to-speech responses
 
 # Todo
 
 - Various feedback loops to improve the quality of the transcript as well as the questions/answers
 - log conversations to central contexts in case further processing is needed
 
+- Real time transcription improvements
+- Chatbot improvement (user initial prompt handling)
+- AOB
+
 Also:
 - Fix unsafe Wekzeug usage for production
-- Improve the template as the current responses may not be satisfactory.
-- Implement more specific error handling related to Llama model interactions.
-
-And:
-- Stream answer
 
 ## Getting Started
 
