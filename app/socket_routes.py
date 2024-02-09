@@ -7,16 +7,13 @@ audio processing and text conversation handling.
 
 import logging
 import tempfile
-import pyttsx3
-from datetime import datetime
 from typing import Dict, Tuple, Any
-
 
 from flask import request
 from . import socketio
 from .audio_processing import AudioTranscriptionManager
-from .text_processing import Conversation, Message
-from .utils import generate_audioblob_filename, save_data_to_file, process_transcription
+from .text_processing import Conversation
+from .utils import generate_filename, save_data_to_file, process_transcription
 from .custom_exceptions import MissingPackageError
 
 # Dictionary to manage session states and associated objects for each client.
@@ -55,7 +52,7 @@ def handle_audio_chunk(received_data: Any):
         logging.error(f"Session manager not found for session ID: {session_id}")
         return
 
-    filename = generate_audioblob_filename(transcription_manager.temp_folder_name)
+    filename = generate_filename(transcription_manager.temp_folder_name)
     save_data_to_file(received_data, filename)
 
     try:

@@ -32,6 +32,7 @@ class TextToSpeechConverter:
         file_name = str(uuid.uuid4()) + ".mp3"
         temp_filename = os.path.join(folder, file_name)
 
+        os.makedirs(folder, exist_ok=True)
         self.engine.save_to_file(text, temp_filename)
         self.engine.runAndWait()
 

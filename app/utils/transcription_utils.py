@@ -6,7 +6,7 @@ from ..audio_processing import AudioTranscriptionManager
 
 DEFAULT_TIMEOUT = 8 # in seconds
 
-def process_transcription(filename: str, transcription_manager: AudioTranscriptionManager, session_id):
+def process_transcription(filename: str, transcription_manager: AudioTranscriptionManager, session_id: str):
     """Process the transcription of an audio file.
 
     Args:
