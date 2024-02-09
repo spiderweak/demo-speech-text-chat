@@ -61,54 +61,6 @@ USER_PROMPT ="""
 <|assistant|>
 """
 
-def refactor_input(text:str) -> str:
-    """Processes the given text to correct any transcription errors using the Llama model.
-
-    The function applies a template to the text for the Llama model to interpret and correct. The template
-    instructs the model to focus on correcting spelling, grammar, and other errors.
-
-    Args:
-        text (str): The text to be processed and corrected.
-
-    Returns:
-        str: The corrected text as processed by the Llama model.
-
-    Note:
-        - TODO: Improve the template as the current responses may not be satisfactory.
-        - TODO: Implement more specific error handling related to Llama model interactions.
-    """
-
-    template = """
-    [INST] <|system|>
-    You are a helpful, respectful and honest assistant.
-    Always answer as helpfully as possible, while being safe.
-
-    You will be given a text, transcribed from an automatic
-    transcription software. You are tasked to correct enventual
-    mistakes in spelling, grammar or any other things in order to
-    provide the best quality transcription possible.
-
-    Please, only answer with the corrected text as your answer will
-    processed automatically. It is important for us to have the best
-    text quality possible.
-    </s>
-
-    <|user|> Here is the text to review:
-    {INSERT_PROMPT_HERE} </s>
-
-    <|assistant|>
-    """
-
-    prompt = template.replace('{INSERT_PROMPT_HERE}', text)
-
-    try:
-        output = llm(prompt, max_tokens=4096, echo=False) # type:ignore
-        return output['choices'][0]['text'] # type:ignore
-    except Exception as e:
-        # Log the error and return an empty DataFrame or handle it as needed.
-        logging.error(f"Unexpected error: {e}")
-
-    return "Error in processing, sorry for the delay, please retry"
 
 class Message:
     def __init__(self, emitter: str, content: str = "") -> None:
