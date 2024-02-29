@@ -17,7 +17,7 @@ def create_app(headless: bool = False) -> Flask:
     """
 
     app = Flask(__name__)
-    socketio.init_app(app)
+    socketio.init_app(app, max_http_buffer_size=4194304)
 
     logging.debug("Socket IO initialized")
 
