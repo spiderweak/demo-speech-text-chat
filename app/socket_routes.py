@@ -81,7 +81,7 @@ def handle_audio_file(received_data: Any):
     convert_audio_data(origin = origin, destination = filename)
 
     try:
-        process_transcription(filename, transcription_manager, session_id)
+        process_transcription(filename, transcription_manager, session_id, timeout=120)
     except MissingPackageError:
         socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
 

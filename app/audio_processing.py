@@ -184,7 +184,7 @@ class AudioTranscriptionManager:
 
 DEFAULT_TIMEOUT = 8 # in seconds
 
-def process_transcription(filename: str, transcription_manager: AudioTranscriptionManager, session_id: str):
+def process_transcription(filename: str, transcription_manager: AudioTranscriptionManager, session_id: str, timeout = DEFAULT_TIMEOUT):
     """Process the transcription of an audio file.
 
     Args:
@@ -203,7 +203,7 @@ def process_transcription(filename: str, transcription_manager: AudioTranscripti
 
     try:
         thread = transcription_manager.append_audio(filename)
-        thread.join(timeout=DEFAULT_TIMEOUT)
+        thread.join(timeout=timeout)
 
         if thread.is_alive():
             logging.error(f"Processing thread for session {session_id} is taking longer than expected.")
