@@ -5,7 +5,7 @@ import base64
 import time
 import logging
 
-from ..custom_exceptions import TextToSpeechTimeoutError
+from .custom_exceptions import TextToSpeechTimeoutError
 
 # Default timeout, 10s
 TTS_TIMEOUT = 10

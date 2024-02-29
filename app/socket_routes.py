@@ -11,10 +11,10 @@ from typing import Dict, Tuple, Any
 
 from flask import request
 from . import socketio
-from .audio_processing import AudioTranscriptionManager
+from .audio_processing import AudioTranscriptionManager, process_transcription
 from .text_processing import Conversation
-from .utils import generate_filename, save_data_to_file, process_transcription
-from .custom_exceptions import MissingPackageError
+from .utils import generate_filename, save_data_to_file, convert_audio_data
+from .utils.custom_exceptions import MissingPackageError
 
 # Dictionary to manage session states and associated objects for each client.
 session_managers: Dict[str, Tuple[AudioTranscriptionManager, Conversation]] = {}
@@ -54,6 +54,31 @@ def handle_audio_chunk(received_data: Any):
 
     filename = generate_filename(transcription_manager.temp_folder_name)
     save_data_to_file(received_data, filename)
+
+    try:
+        process_transcription(filename, transcription_manager, session_id)
+    except MissingPackageError:
+        socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
+
+
+@socketio.on('audio_file')
+def handle_audio_file(received_data: Any):
+    """Handle a complete audio file sent by a client.
+
+    Args:
+        received_data (bytes): The received audio file
+    """
+    session_id = request.sid  # type: ignore
+    transcription_manager, _ = session_managers.get(session_id, (None, None))
+
+    if not isinstance(transcription_manager, AudioTranscriptionManager):
+        logging.error(f"Session manager not found for session ID: {session_id}")
+        return
+
+    origin = generate_filename(transcription_manager.temp_folder_name, extension="wav")
+    filename = generate_filename(transcription_manager.temp_folder_name)
+    save_data_to_file(received_data, origin)
+    convert_audio_data(origin = origin, destination = filename)
 
     try:
         process_transcription(filename, transcription_manager, session_id)
