@@ -39,6 +39,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    $('#importButton').click(function() {
+        $('#fileInput').click(); // Trigger file input
+    });
+
+    $('#fileInput').change(function(e) {
+        if (e.target.files.length > 0) {
+            var file = e.target.files[0];
+            var fileName = file.name;
+            // Show the file name and Accept/Deny buttons
+            $('#fileSelectionDetails').html(`
+            <div class="flex flex-col items-center justify-center">
+                <div class="flex flex-col items-center">
+                    <button class="acceptButton bg-green-500 text-white px-2 py-1 mb-2 hover:bg-green-700 rounded">✅</button>
+                    <button class="denyButton bg-red-500 text-white px-2 py-1 hover:bg-red-700 rounded">❌</button>
+                </div>
+            </div>
+            `).removeClass('hidden');
+
+
+            // Handle Accept
+            $('.acceptButton').click(function() {
+                socket.emit('audio_file', file);
+                console.log('File sent:', fileName);
+
+                // Hide the selection details and reset the file input
+                $('#fileSelectionDetails').addClass('hidden');
+                $('#fileInput').val('');
+            });
+
+            // Handle Deny
+            $('.denyButton').click(function() {
+                // Implement what happens when denied
+                console.log('File denied:', fileName);
+                // You can hide the selection details and reset the file input
+                $('#fileSelectionDetails').addClass('hidden');
+                $('#fileInput').val('');
+            });
+        }
+    });
+
     function startRecording() {
         // The API is available
         navigator.mediaDevices.getUserMedia({ audio: true })
