@@ -18,6 +18,7 @@ WORKDIR /app
 
 COPY requirements.txt .env run.py entrypoint.sh ./
 COPY app/*.py ./app/
+COPY app/datatypes ./app/datatypes
 COPY app/templates ./app/templates
 COPY app/static ./app/static
 COPY app/utils ./app/utils
