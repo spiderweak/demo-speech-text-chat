@@ -16,6 +16,8 @@ from .text_processing import Conversation
 from .utils import generate_filename, save_data_to_file, convert_audio_data
 from .utils.custom_exceptions import MissingPackageError
 
+from .datatypes import Message
+
 # Dictionary to manage session states and associated objects for each client.
 session_managers: Dict[str, Tuple[AudioTranscriptionManager, Conversation]] = {}
 
@@ -27,6 +29,19 @@ def handle_connect():
     temp_folder = tempfile.TemporaryDirectory()
 
     session_managers[session_id] = (AudioTranscriptionManager(temp_folder, session_id=session_id), Conversation(session_id=session_id))
+
+    starting_message = Message("info", """Welcome to Chronos Chat, don't hesitate to ask us any question,
+                  we inform you that the real time transcription functionality is only available for 
+                  30s speech, if you need to talk for more than 30s, please toggle the "disable real time transcription"
+                  button at the bottom of the window. Click this message to dismiss it.""")
+
+    starting_message_dict = {
+                "message_id": str(starting_message.id),
+                "sender" : starting_message.emitter,
+                "content": starting_message.content
+            }
+
+    socketio.emit('message', starting_message_dict, to=session_id)
 
 
 @socketio.on('disconnect')
@@ -58,7 +73,15 @@ def handle_audio_chunk(received_data: Any):
     try:
         process_transcription(filename, transcription_manager, session_id)
     except MissingPackageError:
-        socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
+        forwarded_message = Message("error", "Missing package, audio transcription not available")
+
+        forwarded_message_dict = {
+            "message_id": str(forwarded_message.id),
+            "sender" : forwarded_message.emitter,
+            "content": forwarded_message.content
+        }
+
+        socketio.emit('message', forwarded_message_dict, to=session_id)
 
 
 @socketio.on('audio_file')
@@ -83,7 +106,15 @@ def handle_audio_file(received_data: Any):
     try:
         process_transcription(filename, transcription_manager, session_id, timeout=120)
     except MissingPackageError:
-        socketio.emit('error_message', "Missing package, audio transcription not available", to=session_id)
+        forwarded_message = Message("error", "Missing package, audio transcription not available")
+
+        forwarded_message_dict = {
+            "message_id": str(forwarded_message.id),
+            "sender" : forwarded_message.emitter,
+            "content": forwarded_message.content
+        }
+
+        socketio.emit('message', forwarded_message_dict, to=session_id)
 
 
 @socketio.on('user_message')

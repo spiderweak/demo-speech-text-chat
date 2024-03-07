@@ -8,12 +8,13 @@ refactoring, conversation management, and interaction with the Llama language mo
 import logging
 import threading
 import tempfile
-import uuid
 import re
 
 from .utils import load_text_model, TextToSpeechConverter
 from typing import Tuple, Optional
 from .socket_routes import socketio
+
+from .datatypes import Message
 
 # We're loading the model at the beginning,
 # it would probably be better to work another way
@@ -60,30 +61,6 @@ USER_PROMPT ="""
 
 <|assistant|>
 """
-
-
-class Message:
-    def __init__(self, emitter: str, content: str = "") -> None:
-        self.id = uuid.uuid4()
-        self.emitter = emitter
-        self.content = content
-
-    @property
-    def emitter(self):
-        return self._emitter
-
-    @emitter.setter
-    def emitter(self, emitter):
-        self._emitter = emitter
-
-    @property
-    def content(self):
-        return self._content
-
-    @content.setter
-    def content(self, content):
-        self._content = content
-
 
 class Conversation:
     """Manages and processes a conversation using the Llama language model.
