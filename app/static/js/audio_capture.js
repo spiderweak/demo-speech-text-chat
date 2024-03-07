@@ -2,11 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const recordButton = document.getElementById('recordButton');
     const sendButton = document.getElementById('sendButton')
     let mediaRecorder;
+    let chunkInterval
     let audioChunks = [];
     let audioQueue = [];
     let isRecording = false;
     let isPlaying = false;
     const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:${window.location.port}`);
+
+    let currentMode = 'real-time';
+    const changeAudioModeButton = document.getElementById('changeAudioMode');
+    changeAudioModeButton.addEventListener('click', toggleAudioMode);
 
     const chatInput = document.getElementById('chatInput');
 
@@ -79,6 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function toggleAudioMode() { // Switch the mode
+        if (!isRecording) {
+            if (currentMode === 'real-time') {
+                currentMode = 'long-message';
+                changeAudioModeButton.textContent = 'Switch to Real-Time Transcription';
+            } else {
+                currentMode = 'real-time';
+                changeAudioModeButton.textContent = 'Switch to Long Message Transcription';
+            }
+        }
+    };
+
     function startRecording() {
         // The API is available
         navigator.mediaDevices.getUserMedia({ audio: true })
@@ -89,23 +106,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log("Recording started");
 
-
             mediaRecorder.ondataavailable = event => {
                 console.log(`Chunk received: size = ${event.data.size}, type = ${event.data.type}`);
                 audioChunks.push(event.data);
             };
             mediaRecorder.start();
 
-            chunkInterval = setInterval(() => {
-                if (audioChunks.length > 0) {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    socket.emit('audio_chunk', audioBlob);
-                    console.log(`Emitting audio blob: size = ${audioBlob.size}, type = ${audioBlob.type}`);
-                }
-                audioChunks = [];
-                mediaRecorder.stop();
-                mediaRecorder.start();
-            }, 3000);
+            if (currentMode == 'real-time') {
+                chunkInterval = setInterval(() => {
+                    if (audioChunks.length > 0) {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        socket.emit('audio_chunk', audioBlob);
+                        console.log(`Emitting audio blob: size = ${audioBlob.size}, type = ${audioBlob.type}`);
+                    }
+                    audioChunks = [];
+                    mediaRecorder.stop();
+                    mediaRecorder.start();
+                }, 3000);
+            }
 
             isRecording = true;
             recordButton.textContent = 'Stop';
@@ -122,19 +140,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function stopRecording() {
 
-        clearInterval(chunkInterval);
-        if (mediaRecorder) {
-            mediaRecorder.stop();
+        if (typeof chunkInterval !== 'undefined') {
+            clearInterval(chunkInterval);
         }
 
-        // Process and send any remaining audio chunks
-        if (audioChunks.length > 0) {
-            const finalAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            socket.emit('audio_chunk', finalAudioBlob);
-            console.log(`Final audio blob emitted: size = ${finalAudioBlob.size}, type = ${finalAudioBlob.type}`);
+        if (mediaRecorder) {
+            // Attach an event listener for the final ondataavailable event
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                    const finalAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    socket.emit('audio_chunk', finalAudioBlob);
+                    console.log(`Final audio blob emitted: size = ${finalAudioBlob.size}, type = ${finalAudioBlob.type}`);
+                    // Clear the audioChunks array after processing the final blob
+                    audioChunks = [];
+                }
+            };
+            // Stop the media recorder to trigger the final ondataavailable event
+            mediaRecorder.stop();
         }
-        // Clear the audioChunks array
-        audioChunks = [];
 
         console.log("Recording stopped");
 
@@ -143,11 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recordButton.classList.replace('bg-red-500', 'bg-blue-500');
         recordButton.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
-
-        // Stop the media recorder
-        if (mediaRecorder) {
-            mediaRecorder.stop();
-        }
     };
 
     function displayMessage(messageType, messageText, messageId = '0') {
@@ -162,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         var typeClasses = {
             'user': ['bg-blue-200', 'rounded-bl-lg', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-none', 'text-right'],
             'error': ['bg-red-200', 'rounded-lg', 'text-red-600'],
+            'info': ['bg-orange-200', 'rounded-lg', 'text-orange-600'],
             'debug': ['bg-green-200', 'rounded-lg', 'text-green-600'],
             'system': ['bg-gray-200', 'rounded-tl-lg', 'rounded-tr-lg', 'rounded-br-lg', 'rounded-bl-none', 'text-black', 'rounded-br-lg', 'text-black']
         };
@@ -169,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newMessageDiv.classList.add(...baseClasses, ...typeClasses[messageType]);
 
         // Make error messages clickable and dismissible
-        if (messageType === 'error' || messageType === 'debug') {
+        if (messageType === 'error' || messageType === 'debug' || messageType === 'info') {
             newMessageDiv.classList.add('clickable');
             newMessageDiv.addEventListener('click', function() {
                 this.remove();  // Remove the message element when clicked
