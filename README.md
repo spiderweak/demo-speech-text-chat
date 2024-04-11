@@ -41,7 +41,7 @@ What things you need to install the software and how to install them:
 Also, for optional dependencies:
 
 - virtualenv
-- - ffmpeg (for the audio processing (both this project and openai-whisper))
+- ffmpeg (for the audio processing (both this project and openai-whisper))
 - Docker (optional for containerization)
 
 And for the audio outputs (dependencies from pyttsx3, see [Synthesizer support](https://pyttsx3.readthedocs.io/en/latest/support.html)):
